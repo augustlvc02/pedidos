@@ -2,7 +2,7 @@ import React from 'react';
 
 import AppLoading from 'expo-app-loading';
 import { Container,Header,Content,Form,Item,Input,Text,
-      Left,Button,Icon, Body,Title,Right, View } from 'native-base';
+      Left,Button,Icon, Body,Title,Right, View, Toast} from 'native-base';
 import * as Font from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
 import { NavigationContainer } from '@react-navigation/native';
@@ -21,7 +21,8 @@ export default class Login extends React.Component {
       id: 0,
       apellidoMaterno: '',
       apellidoPaterno: '',
-      nombres: ''
+      nombres: '',
+      showToast: false,
     };
   }
 
@@ -59,7 +60,12 @@ export default class Login extends React.Component {
         this.setState({errorMessage: "Datos incorrectos"})
         this.setState({username:"", password:""});
       }
-      Alert.alert("app",this.state.errorMessage);
+      //Alert.alert("app",this.state.errorMessage);
+      Toast.show({
+        text: this.state.errorMessage,
+        buttonText: "Ok",
+        duration: 3000
+      });
       //guardarlo de forma local el token
       //AsyncStorage.setItem('token','86');
     })
@@ -91,7 +97,7 @@ export default class Login extends React.Component {
               <Input placeholder="Username" onChangeText={username => this.setState({username})}/>
             </Item>
             <Item last>
-              <Input placeholder="Password" onChangeText={password => this.setState({password})}/>
+              <Input placeholder="Password" secureTextEntry={true} onChangeText={password => this.setState({password})}/>
             </Item>
             <Button block onPress={this.Login}>
               <Text>Login</Text>
