@@ -79,7 +79,7 @@ export default class ListarPedidos extends React.Component {
       return <AppLoading />;
     }
     const { persona } = this.state;
-    console.log('PERSONA: ',persona)
+    //console.log('PERSONA: ',persona)
     //const {data} = this.state;
     //console.log('DATA: ',dataS.sangre);
     return (

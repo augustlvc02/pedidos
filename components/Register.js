@@ -31,7 +31,7 @@ export default class Register extends React.Component {
       modalVisible: false,
       productoid: null,
       cantidad: 0,
-      placeHolderText: "Please Select Country",
+      placeHolderText: "Seleccionar Producto",
       selectedText: "",
       pedidodetalle: [
         /*
@@ -87,10 +87,13 @@ export default class Register extends React.Component {
     })
   }
   
-  GuardarRegistroPedido = () =>{
-    const {productoid} = this.state;
-    const {cantidad} = this.state;
-    console.log("productoid:",productoid);
+  GuardarRegistroPedidoDetalle = () =>{
+    const {sucursalid_FK} = this.state;
+    const {proveedorid_FK} = this.state;
+    const {fecha} = this.state;
+    const {estado} = this.state;
+    const {pedidodetalle} = this.state;
+    console.log("pedidosdetalle:",pedidodetalle);
 
     const Url = "https://tesisanemia.000webhostapp.com/TesisAnemia2/JSonInsertProductoPOST.php";
 
@@ -102,14 +105,20 @@ export default class Register extends React.Component {
      },
      body: JSON.stringify(
       {
-        "productoid": productoid,
-        "cantidad": cantidad
-      })
+        "sucursalid_FK": sucursalid_FK,
+        "proveedorid_FK": proveedorid_FK,
+        "fecha": fecha,
+        "estado": estado,
+        "pedidodetalle": pedidodetalle
+      }
+    )
+
     }).then((respuesta)=> respuesta.text())
     
     .then((respuestaJson) => {
       const data = respuestaJson;
       console.log("data:",data);
+      
       if(data == 'registra')
       {
         //Alert.alert("El pedido esta registrado");
@@ -120,6 +129,7 @@ export default class Register extends React.Component {
         //Alert.alert("No registró");
         this.setState({errorMessage: 'No registró'});
       }
+      
       Toast.show({
         text: this.state.errorMessage,
         buttonText: "Ok",
@@ -137,7 +147,7 @@ export default class Register extends React.Component {
 
   }
 
-  Prueba = () =>{
+  GuardarDetallePedido = () =>{
     const {productoid} = this.state;
     const {cantidad} = this.state;
     const {selectedText} = this.state;
@@ -163,6 +173,7 @@ export default class Register extends React.Component {
     };
     this.state.pedidodetalle.push(producto);
     console.log("pedidos:",this.state.pedidodetalle);
+    this.toggleModal(!this.state.modalVisible);
   }
 
   Register = () =>{
@@ -248,6 +259,17 @@ export default class Register extends React.Component {
     this.ListarProducto();
     console.log("Proveedor:",this.state.proveedores);
     //console.log("id:", this.state.sucursalid_FK);
+
+    //prueba
+    /*
+    const producto = {
+      'nombre_producto': 'AAAAAAAAAAAAAAAAA',
+      'productoid_FK': 1,
+      'cantidad': 4
+    };
+    this.state.pedidodetalle.push(producto);
+    */
+    //
   }
   
   // picker proveedores
@@ -338,52 +360,55 @@ export default class Register extends React.Component {
             <Item>
               <Input placeholder="Estado" onChangeText={estado => this.setState({estado})}/>
             </Item>
-            <Button block onPress={this.Register}>
+            <Button block onPress={this.GuardarRegistroPedidoDetalle}>
               <Text>Registrar</Text>
             </Button>
-            <Button light style = {styles.button} onPress = {() => {this.toggleModal(true)}}>
-            <Icon name='add-outline' />
+            <Button light style = {styles.buttonTop} onPress = {() => {this.toggleModal(true)}}>
+              <Icon name='add-outline' />
             </Button>
+            
 
 
           </Form>
           {/*modal*/}        
           <Modal
-            style = {{backgroundColor: 'red'}}
-            animationType = {"slide"} 
-            transparent = {false}
+            animationType = {"slide"}
+            //transparent = {false}
+            transparent={true}
             visible = {this.state.modalVisible}
             onRequestClose = {() => { console.log("Modal has been closed.") } }> 
-            <Form style={styles.modal}>
-              <Button style = {styles.button} onPress = {() => { this.toggleModal(!this.state.modalVisible)}}>
+            <Form style= {styles.modal}>
+            <Card style= {styles.modal2}>
+            <CardItem >
+            <Form>
+            {/* <Form style= {styles.modal2}> */}
+            
+              <Button style = {styles.buttonBot} onPress = {() => { this.toggleModal(!this.state.modalVisible)}}>
                 <Icon name='close-outline' />
               </Button>
-              <Item>
-
-              <RNPicker
-                dataSource={this.state.productos}
-                dummyDataSource={this.state.productos}
-                defaultValue={false}
-                pickerTitle={"Seleccionar Producto"}
-                showSearchBar={true}
-                disablePicker={false}
-                changeAnimation={"none"}
-                searchBarPlaceHolder={"Buscar....."}
-                showPickerTitle={true}
-                searchBarContainerStyle={this.props.searchBarContainerStyle}
-                pickerStyle={styles.pickerStyle}
-                itemSeparatorStyle={styles.itemSeparatorStyle}
-                pickerItemTextStyle={styles.listTextViewStyle}
-                selectedLabel={this.state.selectedText}
-                placeHolderLabel={this.state.placeHolderText}
-                selectLabelTextStyle={styles.selectLabelTextStyle}
-                placeHolderTextStyle={styles.placeHolderTextStyle}
-                dropDownImageStyle={styles.dropDownImageStyle}
-                //dropDownImage={require("./res/ic_drop_down.png")}
-                selectedValue={(index, item) => this._selectedValue(index, item)}
-              />
-
-
+              
+                <RNPicker
+                  dataSource={this.state.productos}
+                  dummyDataSource={this.state.productos}
+                  defaultValue={false}
+                  pickerTitle={this.state.placeHolderText}
+                  showSearchBar={true}
+                  disablePicker={false}
+                  changeAnimation={"none"}
+                  searchBarPlaceHolder={"Buscar....."}
+                  showPickerTitle={true}
+                  searchBarContainerStyle={this.props.searchBarContainerStyle}
+                  pickerStyle={styles.pickerStyle}
+                  itemSeparatorStyle={styles.itemSeparatorStyle}
+                  pickerItemTextStyle={styles.listTextViewStyle}
+                  selectedLabel={this.state.selectedText}
+                  placeHolderLabel={this.state.placeHolderText}
+                  selectLabelTextStyle={styles.selectLabelTextStyle}
+                  placeHolderTextStyle={styles.placeHolderTextStyle}
+                  dropDownImageStyle={styles.dropDownImageStyle}
+                  //dropDownImage={require("./res/ic_drop_down.png")}
+                  selectedValue={(index, item) => this._selectedValue(index, item)}
+                />
                {/* <RNPicker
                   dataSource={this.state.dataSource}
                   dummyDataSource={this.state.dataSource}
@@ -406,9 +431,6 @@ export default class Register extends React.Component {
                   //dropDownImage={require("./res/ic_drop_down.png")}
                   selectedValue={(index, item) => this._selectedValue(index, item)}
                 />  */}
-
-
-
                 {/* <Picker
                   mode="dropdown"
                   style={{ height: 50, width: 100 }}
@@ -419,27 +441,28 @@ export default class Register extends React.Component {
                 </Picker> */}
 
                 
-              </Item>
               
-              <Item>
-                <Input placeholder="Cantidad" keyboardType="number-pad" onChangeText={cantidad => this.setState({cantidad})}/>
-              </Item>   
+              
+                <Item>
+                  <Input placeholder="Cantidad" keyboardType="number-pad" onChangeText={cantidad => this.setState({cantidad})}/>
+                </Item>   
 
-              <Button block onPress={this.Prueba}>
-              <Text>Registrar</Text>
+              <Button block onPress={this.GuardarDetallePedido}>
+              <Text>Agregar</Text>
             </Button>
-             
-
+            </Form>
+            </CardItem>
+            </Card>
             </Form>
           </Modal>
-
+        
           <List>
             { this.state.pedidodetalle.map(item =>(
-                <ListItem key={item.productoid_FK} > 
-                <Left>
+                <ListItem key={item.productoid_FK} thumbnail> 
+                <Body>
                   <Text>Nombre: {item.nombre_producto}</Text>
-                  <Text>Cantidad: {item.cantidad}</Text>
-                  </Left>
+                  <Text note >Cantidad: {item.cantidad}</Text>
+                </Body>
                   <Right>
                   <Text>Id: {item.productoid_FK}</Text>
                   </Right> 
@@ -456,9 +479,19 @@ export default class Register extends React.Component {
 }
 const styles = StyleSheet.create({
   modal: {
-    borderRadius: 15,
-    backgroundColor: 'red',
-    
+    flex: 1,
+    alignItems: "center",
+    justifyContent: 'center',
+    //
+    //backgroundColor: 'blue',
+    backgroundColor: 'rgba(52, 52, 52, 0.8)'
+  },
+  modal2:{
+    //marginBottom: 100,
+    bottom: 50,
+    //padding: 20,
+    //backgroundColor: 'red',
+    //margin: 20 
   },
 
   modalBack: {
@@ -468,12 +501,16 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
 
-
-
-  button: {
+  buttonTop: {
     marginTop: 10,
     alignSelf: 'center',
   },
+
+  buttonBot: {
+    marginBottom: 10,
+    alignSelf: 'center',
+  },
+
 
   autocompleteContainer: {
     flex: 1,

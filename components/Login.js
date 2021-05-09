@@ -30,28 +30,48 @@ export default class Login extends React.Component {
     //alert('HOLA');
     const {username} = this.state;
     const {password} = this.state;
-    const Url = "https://tesisanemia.000webhostapp.com/TesisAnemia2/JSonLogin.php?username="
-                +username+"&password="+password;
-
+    //const Url = "https://tesisanemia.000webhostapp.com/TesisAnemia2/JSonLogin.php?username="
+    //            +username+"&password="+password;
+    const Url = "https://tesis-geolocalization.herokuapp.com/api/v1/usuario";
+/*
     fetch(Url,{
      method:'GET',
      headers:{
        'Accept':'application/json',
        'Content-Type': 'application/json'
      }
+*/
+
+fetch(Url,{
+  method:'POST',
+  headers:{
+    'Accept':'application/json',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(
+   {
+     "username": username,
+     "password": password
+   }
+ )
     }).then((respuesta)=> respuesta.json())
     .then((respuestaJson) => {
       const data = respuestaJson;
-      const exist = data.usuario ? true : false;
+      console.log("username:",username,", password:",password);
+      console.log("DTA",data);
+      //const exist = data.usuario ? true : false;
+   
+      const exist = !data.message ? true : false;
       console.log("Data", data.usuario);
       console.log("existe", exist);
       if(exist){
-        const { idfamiliar, apellido_materno, apellido_paterno, nombres, tipousuario } = data.usuario[0]
+        //const { idfamiliar, apellido_materno, apellido_paterno, nombres, tipousuario } = data.usuario[0]
+        const { apellido_materno, apellido_paterno, nombres, tipousuario } = data;
         if(tipousuario==='A'){
           this.setState({errorMessage:"Bienvenido "+nombres+" "+apellido_paterno+" "+apellido_materno})
           this.props.navigation.navigate('ListarPedidos');
         } else{
-          console.log("me");
+          //console.log("me");
           this.setState({errorMessage:"No es administrador"})
           this.setState({username:"", password:""});
           
@@ -94,10 +114,10 @@ export default class Login extends React.Component {
         <Content padder contentContainerStyle={{flex:1,justifyContent: 'center'}}>
           <Form>
             <Item>
-              <Input placeholder="Username" onChangeText={username => this.setState({username})}/>
+              <Input value={ this.state.username} placeholder="Username" onChangeText={username => this.setState({username})}/>
             </Item>
             <Item last>
-              <Input placeholder="Password" secureTextEntry={true} onChangeText={password => this.setState({password})}/>
+              <Input value={ this.state.password} placeholder="Password" secureTextEntry={true} onChangeText={password => this.setState({password})}/>
             </Item>
             <Button block onPress={this.Login}>
               <Text>Login</Text>
