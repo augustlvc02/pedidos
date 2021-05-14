@@ -22,10 +22,11 @@ function App() {
     <Root>
       <NavigationContainer>
         <Stack.Navigator>
-        
         <Stack.Screen name="Register" component={Register} />
-
         <Stack.Screen name="Login" component={Login} options={{headerShown:false}}/>
+        
+
+        
         
         <Stack.Screen name="ListarPedidos" component={ListarPedidos} />
 

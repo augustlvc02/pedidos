@@ -2,7 +2,7 @@ import React from 'react';
 
 import AppLoading from 'expo-app-loading';
 import { Container,Header,Content,Form,Item,Input,Text,
-      Left,Button,Icon, Body,Title,Right, View, Toast} from 'native-base';
+      Left,Button,Icon, Body,Title,Right, View, Toast, Spinner} from 'native-base';
 import * as Font from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
 import { NavigationContainer } from '@react-navigation/native';
@@ -18,81 +18,138 @@ export default class Login extends React.Component {
       username:'',
       password:'' ,
       errorMessage: '',
+      //mensaje: '',
       id: 0,
       apellidoMaterno: '',
       apellidoPaterno: '',
       nombres: '',
       showToast: false,
+      showSpinner: false,
     };
+    //this.loginClick = this.loginClick.bind(this);
   }
+  
 
-  Login = () =>{
+  //Login = () =>{
+loginClick = () => { 
+  //muestra spinner
+  this.setState({showSpinner: true});
+  
     //alert('HOLA');
     const {username} = this.state;
     const {password} = this.state;
-    //const Url = "https://tesisanemia.000webhostapp.com/TesisAnemia2/JSonLogin.php?username="
-    //            +username+"&password="+password;
-    const Url = "https://tesis-geolocalization.herokuapp.com/api/v1/usuario";
-/*
-    fetch(Url,{
-     method:'GET',
-     headers:{
-       'Accept':'application/json',
-       'Content-Type': 'application/json'
-     }
-*/
+    //const errorMessage = this.state;
+    
+  if( username=='' || password=='' ){
 
-fetch(Url,{
-  method:'POST',
-  headers:{
-    'Accept':'application/json',
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify(
-   {
-     "username": username,
-     "password": password
-   }
- )
-    }).then((respuesta)=> respuesta.json())
-    .then((respuestaJson) => {
-      const data = respuestaJson;
-      console.log("username:",username,", password:",password);
-      console.log("DTA",data);
-      //const exist = data.usuario ? true : false;
-   
-      const exist = !data.message ? true : false;
-      console.log("Data", data.usuario);
-      console.log("existe", exist);
-      if(exist){
-        //const { idfamiliar, apellido_materno, apellido_paterno, nombres, tipousuario } = data.usuario[0]
-        const { apellido_materno, apellido_paterno, nombres, tipousuario } = data;
-        if(tipousuario==='A'){
-          this.setState({errorMessage:"Bienvenido "+nombres+" "+apellido_paterno+" "+apellido_materno})
-          this.props.navigation.navigate('ListarPedidos');
-        } else{
-          //console.log("me");
-          this.setState({errorMessage:"No es administrador"})
-          this.setState({username:"", password:""});
-          
-        }
-      } else {
-        this.setState({errorMessage: "Datos incorrectos"})
-        this.setState({username:"", password:""});
-      }
-      //Alert.alert("app",this.state.errorMessage);
-      Toast.show({
-        text: this.state.errorMessage,
-        buttonText: "Ok",
-        duration: 3000
-      });
-      //guardarlo de forma local el token
-      //AsyncStorage.setItem('token','86');
-    })
-    .catch((error) => {
-      console.log(error);
-    })
+    //console.log("NO VALIDO -> USER:",username,'-PSWD:',password);
+    //this.setState({conErrores: true});
+    if( username =='' &&  password ==''){
+      this.setState({errorMessage: "Usuario y Password no pueden estar vacios"}, function () {
+        this.mostrarToast();
+    }); 
+    }
+    else if( username ==''){
+      this.setState({errorMessage: "Usuario no puede estar vacio"}, function () {
+        this.mostrarToast();
+    }); 
+    }
+    else if( password ==''){
+      this.setState({errorMessage: "Password no puede estar vacio"}, function () {
+        this.mostrarToast();
+    }); 
+    }
   }
+  else{
+    //this.setState({conErrores: false});
+    console.log("VALIDO -> USER:",username,'-PSWD:',password);
+
+
+      //const Url = "https://tesisanemia.000webhostapp.com/TesisAnemia2/JSonLogin.php?username="
+      //            +username+"&password="+password;
+      const Url = "https://project-code-dev.herokuapp.com/api/v1/usuario";
+  /*
+      fetch(Url,{
+      method:'GET',
+      headers:{
+        'Accept':'application/json',
+        'Content-Type': 'application/json'
+      }
+  */
+
+  fetch(Url,{
+    method:'POST',
+    headers:{
+      'Accept':'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(
+    {
+      "username": username,
+      "password": password
+    }
+  )
+      }).then((respuesta)=> respuesta.json())
+      .then((respuestaJson) => {
+        const data = respuestaJson;
+        console.log("username:",username,", password:",password);
+        console.log("DTA",data);
+        //const exist = data.usuario ? true : false;
+    
+        const exist = !data.message ? true : false;
+        console.log("Data", data.usuario);
+        console.log("existe", exist);
+        if(exist){
+          //const { idfamiliar, apellido_materno, apellido_paterno, nombres, tipousuario } = data.usuario[0]
+          const { apellido_materno, apellido_paterno, nombres, tipousuario } = data;
+          if(tipousuario==='A'){
+            
+            
+            this.setState({errorMessage:"Bienvenido "+nombres+" "+apellido_paterno+" "+apellido_materno}, function () {
+              this.mostrarToast();
+              this.props.navigation.navigate('ListarPedidos');  
+          });
+          
+            
+          } else{
+            //console.log("me");
+            //this.setState({conErrores: true});
+            this.setState({errorMessage:"No es administrador"}, function () {
+              this.mostrarToast();
+          });
+            this.setState({username:"", password:""});
+            
+          }
+        } else {
+          //this.setState({conErrores: true});
+          this.setState({errorMessage: "Datos incorrectos"}, function () {
+            this.mostrarToast();
+        });
+          this.setState({username:"", password:""});
+        }
+
+      })
+      .catch((error) => {
+        console.log(error);
+      })
+  }
+  //console.log("ERROR:",this.state.errorMessage); 
+
+  }
+
+  mostrarToast() {
+    //oculta spinner y muestra toast
+    this.setState({showSpinner: false});
+    Toast.show({
+      text: this.state.errorMessage,
+      buttonText: "Ok",
+      duration: 3000
+    });
+    
+    
+    //console.log('DATO:',this.state.errorMessage);
+    //Do your action
+ }
 
   async componentDidMount() {
     await Font.loadAsync({
@@ -101,6 +158,7 @@ fetch(Url,{
       ...Ionicons.font,
     });
     this.setState({ isReady: true });
+    //this.setState({selogeo: false});
   }
 
   render() {
@@ -119,7 +177,9 @@ fetch(Url,{
             <Item last>
               <Input value={ this.state.password} placeholder="Password" secureTextEntry={true} onChangeText={password => this.setState({password})}/>
             </Item>
-            <Button block onPress={this.Login}>
+            <Button block onPress={this.loginClick}>
+          
+
               <Text>Login</Text>
             </Button>
 
@@ -129,7 +189,9 @@ fetch(Url,{
             <Button block danger  onPress={() => this.props.navigation.navigate('Register')}>
               <Text>Registro</Text>
             </Button>
-
+            {this.state.selogeo ? <Spinner/>: null }
+            
+            
           </Form>
         </Content>
         

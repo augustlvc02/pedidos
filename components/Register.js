@@ -29,10 +29,14 @@ export default class Register extends React.Component {
       proveedores: [],
       productos: [],
       modalVisible: false,
-      productoid: null,
+
+      productoid_FK: 0,
       cantidad: 0,
       placeHolderText: "Seleccionar Producto",
       selectedText: "",
+      isEdit: false,
+      position: 0,
+
       pedidodetalle: [
         /*
         {
@@ -80,7 +84,7 @@ export default class Register extends React.Component {
     .then((respuestaJson) => {
       const data = respuestaJson;
       this.setState({ productos: data.producto });
-      console.log('DATA:::',this.state.productos);
+      //console.log('DATA:::',this.state.productos);
     })
     .catch((error) => {
     console.log(error);
@@ -148,10 +152,12 @@ export default class Register extends React.Component {
   }
 
   GuardarDetallePedido = () =>{
-    const {productoid} = this.state;
+    const {productoid_FK} = this.state;
     const {cantidad} = this.state;
     const {selectedText} = this.state;
-    console.log("productoid:",productoid);
+    const {isEdit} = this.state;
+    const {position} = this.state;
+    console.log("productoid_FK:",productoid_FK);
     /*
     this.setState({
       pedidodetalles: [
@@ -168,10 +174,18 @@ export default class Register extends React.Component {
     console.log("pedidosantes:",this.state.pedidodetalle);
     const producto = {
       'nombre_producto': selectedText,
-      'productoid_FK': productoid,
+      'productoid_FK': productoid_FK,
       'cantidad': cantidad
     };
-    this.state.pedidodetalle.push(producto);
+    if(isEdit){
+      console.log("edito");
+      //guardar el producto en la posicion
+      this.state.pedidodetalle[position] = producto;
+    }
+    else{
+      console.log("agrego");
+      this.state.pedidodetalle.push(producto);
+    }
     console.log("pedidos:",this.state.pedidodetalle);
     this.toggleModal(!this.state.modalVisible);
   }
@@ -244,7 +258,13 @@ export default class Register extends React.Component {
   }
 
   toggleModal(visible) {
-    this.setState({ modalVisible: visible });
+    this.setState({ modalVisible: visible,
+                    cantidad: 0,
+                    selectedText: '',
+                    productoid_FK: 0,
+                    isEdit: false,
+                    position: 0
+    });
  }
 
   async componentDidMount() {
@@ -261,14 +281,14 @@ export default class Register extends React.Component {
     //console.log("id:", this.state.sucursalid_FK);
 
     //prueba
-    /*
+    
     const producto = {
       'nombre_producto': 'AAAAAAAAAAAAAAAAA',
       'productoid_FK': 1,
       'cantidad': 4
     };
     this.state.pedidodetalle.push(producto);
-    */
+    
     //
   }
   
@@ -283,7 +303,7 @@ export default class Register extends React.Component {
   productosList = () =>{
     return( 
            this.state.productos.map(item =>(
-            <Picker.Item label={item.nombre_producto} key={item.productoid} value={item.productoid}  />
+            <Picker.Item label={item.nombre_producto} key={item.productoid_FK} value={item.productoid_FK}  />
        )))
   }
 
@@ -292,10 +312,39 @@ export default class Register extends React.Component {
     this.setState({ selectedText: item.nombre_producto});
   }
   */
+  EditarProductoList(item) {
+    //obtener la posicion
+    var position = this.state.pedidodetalle.indexOf(item);
+    
+    console.log("click");
+    //abri el modal
+    this.toggleModal(!this.state.modalVisible);
+    console.log("item:",item);
+    //setear el objeto
+    this.setState({
+      isEdit: true,
+      cantidad: item.cantidad,
+      selectedText: item.nombre_producto,
+      productoid_FK: item.productoid_FK,
+      position: position
+      }
+      , function () {
+      console.log("cantidad:",this.state.cantidad);
+      console.log("Producto:",this.state.selectedText);
+    }); 
 
+  }
+
+  EliminarProductoList(item) {
+    //obtener la posicion
+    var pedidodetallenuevo = this.state.pedidodetalle;
+    var position = this.state.pedidodetalle.indexOf(item);
+    this.state.pedidodetalle.splice(position,1);
+    this.setState({pedidodetalle: pedidodetallenuevo});
+  }
 
   _selectedValue(index, item) {
-    this.setState({ selectedText: item.nombre_producto, productoid: item.productoid });
+    this.setState({ selectedText: item.nombre_producto, productoid_FK: item.productoid_FK });
     //console.log("seleccionado:",productoid);
    // console.log("id:",this.state.productoid);
   }
@@ -390,7 +439,7 @@ export default class Register extends React.Component {
                 <RNPicker
                   dataSource={this.state.productos}
                   dummyDataSource={this.state.productos}
-                  defaultValue={false}
+                  defaultValue={this.state.selectedText}
                   pickerTitle={this.state.placeHolderText}
                   showSearchBar={true}
                   disablePicker={false}
@@ -444,12 +493,20 @@ export default class Register extends React.Component {
               
               
                 <Item>
-                  <Input placeholder="Cantidad" keyboardType="number-pad" onChangeText={cantidad => this.setState({cantidad})}/>
+                  <Input 
+                  value={String(this.state.cantidad)}
+                  placeholder="Cantidad" keyboardType="number-pad" onChangeText={cantidad => this.setState({cantidad})}/>
                 </Item>   
 
               <Button block onPress={this.GuardarDetallePedido}>
-              <Text>Agregar</Text>
-            </Button>
+              { !this.state.isEdit ?
+                <Text>Agregar</Text>
+                :
+                <Text>Editar</Text>
+              }
+
+              
+              </Button>
             </Form>
             </CardItem>
             </Card>
@@ -458,13 +515,16 @@ export default class Register extends React.Component {
         
           <List>
             { this.state.pedidodetalle.map(item =>(
-                <ListItem key={item.productoid_FK} thumbnail> 
+                <ListItem key={item.productoid_FK} thumbnail onPress={() => this.EditarProductoList(item)}> 
                 <Body>
                   <Text>Nombre: {item.nombre_producto}</Text>
                   <Text note >Cantidad: {item.cantidad}</Text>
+                  <Text note>Id: {item.productoid_FK}</Text>
                 </Body>
                   <Right>
-                  <Text>Id: {item.productoid_FK}</Text>
+                    <Button light style = {styles.buttonTop} onPress={() => this.EliminarProductoList(item)}>
+                      <Icon name='close-outline' />
+                    </Button>
                   </Right> 
                   </ListItem >
               
@@ -477,6 +537,7 @@ export default class Register extends React.Component {
     );
   }
 }
+
 const styles = StyleSheet.create({
   modal: {
     flex: 1,
