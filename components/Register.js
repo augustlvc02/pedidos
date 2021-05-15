@@ -7,7 +7,7 @@ import * as Font from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { Alert, StyleSheet, ImageBackground, Modal} from 'react-native';
+import { Alert, StyleSheet, ImageBackground, Modal, ScrollView} from 'react-native';
 import DatePicker from 'react-native-datepicker';
 import RNPicker from 'rn-modal-picker';
 
@@ -90,6 +90,16 @@ export default class Register extends React.Component {
     console.log(error);
     })
   }
+
+  mostrarToast() {
+    //oculta spinner y muestra toast
+    //this.setState({showSpinner: false});
+    Toast.show({
+      text: this.state.errorMessage,
+      buttonText: "Ok",
+      duration: 3000
+    });
+ }
   
   GuardarRegistroPedidoDetalle = () =>{
     const {sucursalid_FK} = this.state;
@@ -99,55 +109,82 @@ export default class Register extends React.Component {
     const {pedidodetalle} = this.state;
     console.log("pedidosdetalle:",pedidodetalle);
 
-    const Url = "https://tesisanemia.000webhostapp.com/TesisAnemia2/JSonInsertProductoPOST.php";
+    const detalleLenght = this.state.pedidodetalle.length;
+    console.log("detalleLenght:",detalleLenght);
 
-    fetch(Url,{
-     method:'POST',
-     headers:{
-       'Accept':'application/json',
-       'Content-Type': 'application/json'
-     },
-     body: JSON.stringify(
-      {
-        "sucursalid_FK": sucursalid_FK,
-        "proveedorid_FK": proveedorid_FK,
-        "fecha": fecha,
-        "estado": estado,
-        "pedidodetalle": pedidodetalle
+    if( sucursalid_FK==0 || proveedorid_FK==0 || fecha=='' || estado=='' || detalleLenght==0 ){
+      if( detalleLenght==0){
+        this.setState({errorMessage: "Detalle no puede estar vacio"}, function () {
+          this.mostrarToast();
+        });
+      } else if( sucursalid_FK==0){
+        this.setState({errorMessage: "Sucursal no puede estar vacia"}, function () {
+          this.mostrarToast();
+        }); 
+      } else if( proveedorid_FK==0){
+        this.setState({errorMessage: "Proveedor no puede estar vacio"}, function () {
+          this.mostrarToast();
+        }); 
+      }  else if( fecha==''){
+        this.setState({errorMessage: "Fecha no puede estar vacia"}, function () {
+          this.mostrarToast();
+        }); 
+      }  else if( estado==''){
+        this.setState({errorMessage: "Estado no puede estar vacio"}, function () {
+          this.mostrarToast();
+        }); 
       }
-    )
+    }
+    else{
+      const Url = "https://tesisanemia.000webhostapp.com/TesisAnemia2/JSonInsertProductoPOST.php";
 
-    }).then((respuesta)=> respuesta.text())
-    
-    .then((respuestaJson) => {
-      const data = respuestaJson;
-      console.log("data:",data);
+      fetch(Url,{
+      method:'POST',
+      headers:{
+        'Accept':'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(
+        {
+          "sucursalid_FK": sucursalid_FK,
+          "proveedorid_FK": proveedorid_FK,
+          "fecha": fecha,
+          "estado": estado,
+          "pedidodetalle": pedidodetalle
+        }
+      )
+
+      }).then((respuesta)=> respuesta.text())
       
-      if(data == 'registra')
-      {
-        //Alert.alert("El pedido esta registrado");
-        this.setState({errorMessage: 'El pedido esta registrado'});
-      }
-      else
-      {
-        //Alert.alert("No registró");
-        this.setState({errorMessage: 'No registró'});
-      }
+      .then((respuestaJson) => {
+        const data = respuestaJson;
+        console.log("data:",data);
+        
+        if(data == 'registra')
+        {
+          //Alert.alert("El pedido esta registrado");
+          this.setState({errorMessage: 'El pedido esta registrado'});
+        }
+        else
+        {
+          //Alert.alert("No registró");
+          this.setState({errorMessage: 'No registró'});
+        }
+        
+        Toast.show({
+          text: this.state.errorMessage,
+          buttonText: "Ok",
+          duration: 3000
+        });
+      })
       
-      Toast.show({
-        text: this.state.errorMessage,
-        buttonText: "Ok",
-        duration: 3000
-      });
-    })
-    
-    .then ((res) => {
-        console.log("RES:",res);
-    })
-    .catch((error) => {
-      console.log("ERROR:",error);
-    })
-    
+      .then ((res) => {
+          console.log("RES:",res);
+      })
+      .catch((error) => {
+        console.log("ERROR:",error);
+      })
+    }
 
   }
 
@@ -348,6 +385,7 @@ export default class Register extends React.Component {
     //console.log("seleccionado:",productoid);
    // console.log("id:",this.state.productoid);
   }
+
   render() {
     
     if (!this.state.isReady) {
@@ -409,9 +447,7 @@ export default class Register extends React.Component {
             <Item>
               <Input placeholder="Estado" onChangeText={estado => this.setState({estado})}/>
             </Item>
-            <Button block onPress={this.GuardarRegistroPedidoDetalle}>
-              <Text>Registrar</Text>
-            </Button>
+
             <Button light style = {styles.buttonTop} onPress = {() => {this.toggleModal(true)}}>
               <Icon name='add-outline' />
             </Button>
@@ -512,7 +548,7 @@ export default class Register extends React.Component {
             </Card>
             </Form>
           </Modal>
-        
+          <Content >
           <List>
             { this.state.pedidodetalle.map(item =>(
                 <ListItem key={item.productoid_FK} thumbnail onPress={() => this.EditarProductoList(item)}> 
@@ -530,8 +566,10 @@ export default class Register extends React.Component {
               
             ))}
           </List>
-
-
+          </Content >
+          <Button block onPress={this.GuardarRegistroPedidoDetalle}>
+              <Text>Registrar</Text>
+          </Button>
         </Content>
       </Container>
     );
