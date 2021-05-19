@@ -40,7 +40,7 @@ export default function CustomDrawerContent(props) {
         </ListItem>
       ))}
       <ListItem icon
-          onPress={() => props.route.params.setLoggedIn(false)}>
+          onPress={props.setLoggedOut}>
           <Left>
             <Button style={{ backgroundColor: "#007AFF" }}>
               <Icon active name="arrow-forward" />
