@@ -5,15 +5,21 @@ Icon, Body,Title,Right, View, List,
 ListItem } from 'native-base';
 import * as Font from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, ScrollView} from 'react-native'
+import { StyleSheet, ScrollView} from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import Cabecera from './Cabecera';
+//import Login from './components/Login';
 
 export default class ListarPedidos extends React.Component {
 
 
   constructor(props) {
     super(props);
-    this.ListarPedidos();
+    
     this.state = {
+      titulo: "ListarPedidos",
+
       isReady: false,
 
       persona: [
@@ -67,7 +73,9 @@ export default class ListarPedidos extends React.Component {
       Roboto_medium: require('native-base/Fonts/Roboto_medium.ttf'),
       ...Ionicons.font,
     });
+    
     this.setState({ isReady: true });
+    this.ListarPedidos();
   }
 
 
@@ -83,31 +91,28 @@ export default class ListarPedidos extends React.Component {
     //const {data} = this.state;
     //console.log('DATA: ',dataS.sangre);
     return (
-      
       <Container>
+        <Cabecera {...this.props} titulo={this.state.titulo}/>
         <Content>
-        
-        <List>
-        { this.state.pedidos.map(item =>(
-             <ListItem key={item.pedidoid} > 
-             <Left>
-               <Text>Razon Social: {item.razon_social}</Text>
+          <Button block onPress={() => this.props.route.params.setLoggedIn(false)}>
+            <Text>Salir</Text>
+          </Button>
+          <List>
+          { this.state.pedidos.map(item =>(
+            <ListItem key={item.pedidoid} > 
+              <Left>
+                <Text>Razon Social: {item.razon_social}</Text>
               </Left>
               <Right>
-               <Text>Fecha: {item.fecha}</Text>
+                <Text>Fecha: {item.fecha}</Text>
               </Right> 
-              </ListItem >
-           
-        ))}
-        </List>
-      
+            </ListItem> 
+          ))}
+          </List>
         </Content>
-        </Container>
-    );
-    
+      </Container>
+    ); 
   }
-
-
 }
 const styles = StyleSheet.create({
   container: {

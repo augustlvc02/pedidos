@@ -10,11 +10,13 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { Alert, StyleSheet, ImageBackground, Modal, ScrollView} from 'react-native';
 import DatePicker from 'react-native-datepicker';
 import RNPicker from 'rn-modal-picker';
+import Cabecera from './Cabecera';
 
 export default class Register extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      titulo: "Register",
       isReady: false,
       sucursalid_FK: 0,
       proveedorid_FK: null,
@@ -394,6 +396,9 @@ export default class Register extends React.Component {
     
     return (
       <Container>
+
+        <Cabecera {...this.props} titulo={this.state.titulo}/>
+        
         <Content padder contentContainerStyle={{flex:1}}>
           <Form>
             <Item>
@@ -548,22 +553,21 @@ export default class Register extends React.Component {
             </Card>
             </Form>
           </Modal>
-          <Content >
+          <Content>
           <List>
             { this.state.pedidodetalle.map(item =>(
-                <ListItem key={item.productoid_FK} thumbnail onPress={() => this.EditarProductoList(item)}> 
-                <Body>
-                  <Text>Nombre: {item.nombre_producto}</Text>
-                  <Text note >Cantidad: {item.cantidad}</Text>
-                  <Text note>Id: {item.productoid_FK}</Text>
-                </Body>
-                  <Right>
-                    <Button light style = {styles.buttonTop} onPress={() => this.EliminarProductoList(item)}>
-                      <Icon name='close-outline' />
-                    </Button>
-                  </Right> 
-                  </ListItem >
-              
+            <ListItem key={item.productoid_FK} thumbnail onPress={() => this.EditarProductoList(item)}> 
+              <Body>
+                <Text>Nombre: {item.nombre_producto}</Text>
+                <Text note >Cantidad: {item.cantidad}</Text>
+                <Text note>Id: {item.productoid_FK}</Text>
+              </Body>
+              <Right>
+                <Button light style = {styles.buttonTop} onPress={() => this.EliminarProductoList(item)}>
+                  <Icon name='close-outline' />
+                </Button>
+              </Right> 
+            </ListItem>        
             ))}
           </List>
           </Content >

@@ -34,11 +34,10 @@ export default class Login extends React.Component {
 loginClick = () => { 
   //muestra spinner
   this.setState({showSpinner: true});
-  
-    //alert('HOLA');
-    const {username} = this.state;
-    const {password} = this.state;
-    //const errorMessage = this.state;
+  //alert('HOLA');
+  const {username} = this.state;
+  const {password} = this.state;
+  //const errorMessage = this.state;
     
   if( username=='' || password=='' ){
 
@@ -107,7 +106,9 @@ loginClick = () => {
             
             this.setState({errorMessage:"Bienvenido "+nombres+" "+apellido_paterno+" "+apellido_materno}, function () {
               this.mostrarToast();
-              this.props.navigation.navigate('ListarPedidos');  
+              this.props.route.params.setLoggedIn(true);
+              //this.props.navigation.navigate('ListarPedidos');
+              
           });
           
             
@@ -178,16 +179,7 @@ loginClick = () => {
               <Input value={ this.state.password} placeholder="Password" secureTextEntry={true} onChangeText={password => this.setState({password})}/>
             </Item>
             <Button block onPress={this.loginClick}>
-          
-
               <Text>Login</Text>
-            </Button>
-
-            <Button block warning  onPress={() => this.props.navigation.navigate('ListarPedidos')}>
-              <Text>ListarPedidos</Text>
-            </Button>
-            <Button block danger  onPress={() => this.props.navigation.navigate('Register')}>
-              <Text>Registro</Text>
             </Button>
             {this.state.selogeo ? <Spinner/>: null }
             
