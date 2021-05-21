@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import AppLoading from 'expo-app-loading';
 import { Container,Header,Content,Form,Item,Input,Text,Left,Button,
 Icon, Body,Title,Right, View, List,
-ListItem } from 'native-base';
+ListItem, Spinner } from 'native-base';
 import * as Font from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, ScrollView} from 'react-native';
@@ -34,6 +34,7 @@ export default class ListarPedidos extends React.Component {
       ] ,
 
       pedidos: [],
+      showSpinner: false,
     };
   }
   /*
@@ -48,6 +49,7 @@ export default class ListarPedidos extends React.Component {
   */
 
   ListarPedidos = () =>{
+    this.setState({showSpinner: true});
     const Url = "https://tesisanemia.000webhostapp.com/TesisAnemia2/JSonListPedido.php";
 
     fetch(Url,{
@@ -60,11 +62,13 @@ export default class ListarPedidos extends React.Component {
     .then((respuestaJson) => {
       const data = respuestaJson;
       this.setState({ pedidos: data.pedido });
+      this.setState({showSpinner: false});
       //console.log('DATA:::',dataS);
     })
     .catch((error) => {
     console.log(error);
     })
+    
   }
   
   async componentDidMount() {
@@ -94,9 +98,7 @@ export default class ListarPedidos extends React.Component {
       <Container>
         <Cabecera {...this.props} titulo={this.state.titulo}/>
         <Content>
-          <Button block onPress={() => this.props.route.params.setLoggedIn(false)}>
-            <Text>Salir</Text>
-          </Button>
+          {this.state.showSpinner ? <Spinner/>: null }
           <List>
           { this.state.pedidos.map(item =>(
             <ListItem key={item.pedidoid} > 
