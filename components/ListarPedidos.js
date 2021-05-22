@@ -98,7 +98,7 @@ export default class ListarPedidos extends React.Component {
       <Container>
         <Cabecera {...this.props} titulo={this.state.titulo}/>
         <Content>
-          {this.state.showSpinner ? <Spinner/>: null }
+          {this.state.showSpinner ? <Spinner color='blue'/>: null }
           <List>
           { this.state.pedidos.map(item =>(
             <ListItem key={item.pedidoid} > 

@@ -43,7 +43,7 @@ export default function CustomDrawerContent(props) {
           onPress={props.setLoggedOut}>
           <Left>
             <Button style={{ backgroundColor: "#007AFF" }}>
-              <Icon active name="arrow-forward" />
+              <Icon active name="exit" />
             </Button>
           </Left>
           <Body>

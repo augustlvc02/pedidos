@@ -375,11 +375,23 @@ export default class Register extends React.Component {
   }
 
   EliminarProductoList(item) {
-    //obtener la posicion
-    var pedidodetallenuevo = this.state.pedidodetalle;
-    var position = this.state.pedidodetalle.indexOf(item);
-    this.state.pedidodetalle.splice(position,1);
-    this.setState({pedidodetalle: pedidodetallenuevo});
+
+    Alert.alert(
+      'Salir',
+      '¿Desea eliminar detalle?',
+      [
+        {text: 'Cancelar', onPress: () => {return null}},
+        {text: 'Eliminar', onPress: () => {
+          //obtener la posicion
+          var pedidodetallenuevo = this.state.pedidodetalle;
+          var position = this.state.pedidodetalle.indexOf(item);
+          this.state.pedidodetalle.splice(position,1);
+          this.setState({pedidodetalle: pedidodetallenuevo});    
+        }},
+      ],
+      { cancelable: false }
+    )
+
   }
 
   _selectedValue(index, item) {
@@ -453,7 +465,7 @@ export default class Register extends React.Component {
               <Input placeholder="Estado" onChangeText={estado => this.setState({estado})}/>
             </Item>
 
-            <Button light style = {styles.buttonTop} onPress = {() => {this.toggleModal(true)}}>
+            <Button primary style = {styles.buttonTop} onPress = {() => {this.toggleModal(true)}}>
               <Icon name='add-outline' />
             </Button>
             
@@ -474,7 +486,7 @@ export default class Register extends React.Component {
             {/* <Form style= {styles.modal2}> */}
             
               <Button style = {styles.buttonBot} onPress = {() => { this.toggleModal(!this.state.modalVisible)}}>
-                <Icon name='close-outline' />
+                <Icon name='md-arrow-undo' />
               </Button>
               
                 <RNPicker
@@ -556,15 +568,15 @@ export default class Register extends React.Component {
           <Content>
           <List>
             { this.state.pedidodetalle.map(item =>(
-            <ListItem key={item.productoid_FK} thumbnail onPress={() => this.EditarProductoList(item)}> 
+            <ListItem key={item.productoid_FK} onPress={() => this.EditarProductoList(item)}> 
               <Body>
                 <Text>Nombre: {item.nombre_producto}</Text>
                 <Text note >Cantidad: {item.cantidad}</Text>
                 <Text note>Id: {item.productoid_FK}</Text>
               </Body>
               <Right>
-                <Button light style = {styles.buttonTop} onPress={() => this.EliminarProductoList(item)}>
-                  <Icon name='close-outline' />
+                <Button transparent style = {styles.buttonTop} onPress={() => this.EliminarProductoList(item)}>
+                  <Icon style={{ color: "black" }} name='md-trash-sharp' />
                 </Button>
               </Right> 
             </ListItem>        
@@ -606,7 +618,7 @@ const styles = StyleSheet.create({
 
   buttonTop: {
     marginTop: 10,
-    alignSelf: 'center',
+    alignSelf: 'center'
   },
 
   buttonBot: {

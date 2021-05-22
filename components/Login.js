@@ -143,7 +143,7 @@ export default class Login extends React.Component {
             <Button block onPress={this.loginClick}>
               <Text>Login</Text>
             </Button>
-            {this.state.showSpinner ? <Spinner/>: null }
+            {this.state.showSpinner ? <Spinner color='blue'/>: null }
             
             
           </Form>
