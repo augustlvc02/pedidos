@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Alert, ImageBackground } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 //import { AsyncStorage } from 'react-native';
 
 export default class Login extends React.Component {
@@ -37,6 +38,13 @@ export default class Login extends React.Component {
       buttonText: "Ok",
       duration: 3000
     });
+  }
+  guardarUsuario = async(data) => {
+    try{
+      await AsyncStorage.setItem('sesion_usuario', JSON.stringify(data));
+    } catch (e) {
+    // saving error
+    }
   }
   //Login = () =>{
   loginClick = () => { 
@@ -92,6 +100,8 @@ export default class Login extends React.Component {
           if(tipousuario==='A'){
             this.setState({errorMessage:"Bienvenido "+nombres+" "+apellido_paterno+" "+apellido_materno}, function () {
               this.mostrarToast();
+              //AsyncStorage.setItem('sesion_usuario', JSON.stringify(data));
+              this.guardarUsuario(data);
               this.props.route.params.setLoggedIn(true);
               //this.props.navigation.navigate('ListarPedidos');
             });
@@ -121,6 +131,18 @@ export default class Login extends React.Component {
       ...Ionicons.font,
     });
     this.setState({ isReady: true });
+    /*
+    AsyncStorage.getItem('sesion_usuario')
+    .then((res) => {
+      console.log({INICIO: JSON.parse(res)})
+    })
+    
+    const selogeo = AsyncStorage.getItem('sesion_usuario');
+    if(selogeo !== null) {
+      console.log({LOGIN: JSON.parse(selogeo)})
+      // value previously stored
+    }
+    */
     //this.setState({selogeo: false});
   }
 

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {useState, useEffect} from 'react';
 //import { View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -12,6 +13,7 @@ import { Container,Header,Content,Form,Item,Input,Text,Left,Button,
   Icon, Body,Title,Right, View, Label, Picker, List, ListItem,Card,CardItem, Toast} from 'native-base';
 import CustomDrawerContent from './components/CustomDrawerContent';
 import { useContext } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 function HomeScreen() {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
@@ -27,9 +29,40 @@ const routes = [
   { titulo:'ListarPedidos', icono:'list' }
 ];
 
+
+
 function App() {
   //const [loggedIn, setLoggedIn] = React.useState(false);
-  const [loggedIn, setLoggedIn] = React.useState(true);
+  const [loggedIn, setLoggedIn] = useState(false);
+  // obtiene el usuario
+  const obtenerUsuario = async() => {
+    try{
+      const usuario = await AsyncStorage.getItem('sesion_usuario');
+      //console.log("usuariocargado",usuario);
+      usuario !== null ? setLoggedIn(true) : setLoggedIn(false);
+    } catch (e) {
+    // saving error
+    }
+  }
+  const limpiarUsuario = async() => {
+    try{
+      await AsyncStorage.removeItem('sesion_usuario');
+    } catch (e) {
+    // saving error
+    }
+  }
+  obtenerUsuario();
+  /*
+  AsyncStorage.getItem('sesion_usuario')
+  .then((res) => {
+    if(res !== null){
+      setLoggedIn(true);
+    }
+    else{
+      setLoggedIn(false);
+    }
+  })
+  */
   const setLoggedOut = () => {
     Alert.alert(
       'Salir',
@@ -40,6 +73,7 @@ function App() {
           //AsyncStorage.clear();
           //props.navigation.navigate('Login')
           //props.handleClick;
+          limpiarUsuario();
           setLoggedIn(false);
         }},
       ],
@@ -60,7 +94,8 @@ function App() {
       </NavigationContainer> */}
       <NavigationContainer>
       {loggedIn ? (
-        <Drawer.Navigator initialRouteName="Register"
+        <Drawer.Navigator
+          initialRouteName="Register"
           drawerContent={(props) => <CustomDrawerContent {...props} setLoggedOut={ setLoggedOut }/>}>
           <Drawer.Screen name="Register" component={Register} />
           <Drawer.Screen name="ListarPedidos" component={ListarPedidos}

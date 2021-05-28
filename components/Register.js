@@ -138,7 +138,8 @@ export default class Register extends React.Component {
       }
     }
     else{
-      const Url = "https://tesisanemia.000webhostapp.com/TesisAnemia2/JSonInsertProductoPOST.php";
+      //const Url = "https://tesisanemia.000webhostapp.com/TesisAnemia2/JSonInsertProductoPOST.php";
+      const Url = "https://project-code-dev.herokuapp.com/api/v1/pedido";
 
       fetch(Url,{
       method:'POST',
@@ -152,24 +153,19 @@ export default class Register extends React.Component {
           "proveedorid_FK": proveedorid_FK,
           "fecha": fecha,
           "estado": estado,
-          "pedidodetalle": pedidodetalle
+          "detalles": pedidodetalle
         }
       )
 
-      }).then((respuesta)=> respuesta.text())
-      
+      //}).then((respuesta)=> respuesta.text())
+    }).then((respuesta)=> respuesta.json())
+
       .then((respuestaJson) => {
         const data = respuestaJson;
         console.log("data:",data);
-        
-        if(data == 'registra')
-        {
-          //Alert.alert("El pedido esta registrado");
-          this.setState({errorMessage: 'El pedido esta registrado'});
-        }
-        else
-        {
-          //Alert.alert("No registró");
+        if(data.message){
+          this.setState({errorMessage: data.message});
+        }else{
           this.setState({errorMessage: 'No registró'});
         }
         
@@ -178,6 +174,7 @@ export default class Register extends React.Component {
           buttonText: "Ok",
           duration: 3000
         });
+        
       })
       
       .then ((res) => {
@@ -242,7 +239,8 @@ export default class Register extends React.Component {
     console.log("fecha:",fecha);
     console.log("estado:",estado);
 
-    const Url = "https://tesisanemia.000webhostapp.com/TesisAnemia2/JSonInsertPedidoPOST.php";
+    //const Url = "https://tesisanemia.000webhostapp.com/TesisAnemia2/JSonInsertPedidoPOST.php";
+    const Url = "https://project-code-dev.herokuapp.com/api/v1/pedido";
 
     fetch(Url,{
      method:'POST',
@@ -575,7 +573,7 @@ export default class Register extends React.Component {
                 <Text note>Id: {item.productoid_FK}</Text>
               </Body>
               <Right>
-                <Button transparent style = {styles.buttonTop} onPress={() => this.EliminarProductoList(item)}>
+                <Button transparent style = {styles.buttonRight} onPress={() => this.EliminarProductoList(item)}>
                   <Icon style={{ color: "black" }} name='md-trash-sharp' />
                 </Button>
               </Right> 
@@ -619,6 +617,11 @@ const styles = StyleSheet.create({
   buttonTop: {
     marginTop: 10,
     alignSelf: 'center'
+  },
+
+  buttonRight: {
+    //alignSelf: 'flex-end',
+    //position: 'absolute',
   },
 
   buttonBot: {

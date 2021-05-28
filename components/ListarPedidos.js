@@ -9,6 +9,7 @@ import { StyleSheet, ScrollView} from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Cabecera from './Cabecera';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 //import Login from './components/Login';
 
 export default class ListarPedidos extends React.Component {
@@ -63,7 +64,6 @@ export default class ListarPedidos extends React.Component {
       const data = respuestaJson;
       this.setState({ pedidos: data.pedido });
       this.setState({showSpinner: false});
-      //console.log('DATA:::',dataS);
     })
     .catch((error) => {
     console.log(error);
