@@ -51,6 +51,14 @@ function App() {
     // saving error
     }
   }
+  const guardarUsuario = async(usuario) => {
+    try{
+      await AsyncStorage.setItem('sesion_usuario', JSON.stringify(usuario));
+    } catch (e) {
+    // saving error
+    }
+  }
+
   obtenerUsuario();
   /*
   AsyncStorage.getItem('sesion_usuario')
@@ -99,13 +107,13 @@ function App() {
           drawerContent={(props) => <CustomDrawerContent {...props} setLoggedOut={ setLoggedOut }/>}>
           <Drawer.Screen name="Register" component={Register} />
           <Drawer.Screen name="ListarPedidos" component={ListarPedidos}
-          initialParams={{ setLoggedIn }}/>
+          initialParams={{ setLoggedIn}}/>
         </Drawer.Navigator>
     
         ) : (
         <Stack.Navigator>
           <Stack.Screen name="Login" component={Login} options={{headerShown:false}}
-          initialParams={{ setLoggedIn }}/>
+          initialParams={{ setLoggedIn, guardarUsuario }}/>
         </Stack.Navigator>
         )}
       </NavigationContainer>

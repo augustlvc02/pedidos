@@ -30,54 +30,52 @@ export default class Login extends React.Component {
     //this.loginClick = this.loginClick.bind(this);
   }
   
-  mostrarToast() {
+  mostrarToast(message) {
     //oculta spinner y muestra toast
     this.setState({showSpinner: false});
     Toast.show({
-      text: this.state.errorMessage,
+      //text: this.state.errorMessage,
+      text: message,
       buttonText: "Ok",
       duration: 3000
     });
   }
-  guardarUsuario = async(data) => {
+  /*
+  guardarUsuario = async(usuario) => {
     try{
-      await AsyncStorage.setItem('sesion_usuario', JSON.stringify(data));
+      await AsyncStorage.setItem('sesion_usuario', JSON.stringify(usuario));
     } catch (e) {
     // saving error
     }
   }
+  */
+
   //Login = () =>{
-  loginClick = () => { 
+  loginClick = async() => { 
     //muestra spinner
     this.setState({showSpinner: true});
     //alert('HOLA');
     const {username} = this.state;
     const {password} = this.state;
+    let mensaje = '';
+    let selogeo=false;
     //const errorMessage = this.state;
-      
     if( username=='' || password=='' ){
-
-      //console.log("NO VALIDO -> USER:",username,'-PSWD:',password);
-      //this.setState({conErrores: true});
       if( username =='' &&  password ==''){
-        this.setState({errorMessage: "Usuario y Password no pueden estar vacios"}, function () {
-          this.mostrarToast();
-      }); 
+        mensaje = "Usuario y Password no pueden estar vacios";
       }
       else if( username ==''){
-        this.setState({errorMessage: "Usuario no puede estar vacio"}, function () {
-          this.mostrarToast();
-      }); 
+        mensaje = "Usuario no puede estar vacio";
       }
-      else if( password ==''){
-        this.setState({errorMessage: "Password no puede estar vacio"}, function () {
-          this.mostrarToast();
-      }); 
+      else if( password ==''){ 
+        mensaje = "Password no puede estar vacio";
       }
     }
     else{
+      try{
+      console.log('AQUI');
       const Url = "https://project-code-dev.herokuapp.com/api/v1/usuario";
-      fetch(Url,{
+      const response = await fetch(Url,{
         method:'POST',
         headers:{
           'Accept':'application/json',
@@ -87,7 +85,38 @@ export default class Login extends React.Component {
           "username": username,
           "password": password
         })
-      }).then((respuesta)=> respuesta.json())
+      });
+      const usuario = await response.json();
+      console.log(usuario);
+      const exist = !usuario.message ? true : false;
+      
+      if(exist){
+        //console.log("username:",username,", password:",password);
+        //const { idfamiliar, apellido_materno, apellido_paterno, nombres, tipousuario } = data.usuario[0]
+        const { apellido_materno, apellido_paterno, nombres, tipousuario } = usuario;
+        if(tipousuario==='A'){
+          selogeo=true;
+          mensaje = "Bienvenido "+nombres+" "+apellido_paterno+" "+apellido_materno;
+          this.setState({errorMessage:mensaje}, function () {
+            this.mostrarToast(this.state.errorMessage);
+            this.props.route.params.guardarUsuario(usuario);
+            this.props.route.params.setLoggedIn(true);
+          });
+        } else{
+          mensaje = "No es administrador";
+        }
+      } else {
+        mensaje = "Usuario o Password invalidos";
+      }
+    } catch (e) {
+      // saving error
+      console.log(e);
+      mensaje = "Error:".e;
+    }
+    this.setState({username:"", password:""});
+    
+      /*
+      .then((respuesta)=> respuesta.json())
       .then((respuestaJson) => {
         const data = respuestaJson;
         //console.log("mensaje:",data.message);
@@ -121,7 +150,15 @@ export default class Login extends React.Component {
       .catch((error) => {
         console.log(error);
       })
-    } 
+      */
+    }
+
+
+    if(!selogeo){
+      this.setState({errorMessage:mensaje}, function () {
+        this.mostrarToast(this.state.errorMessage);
+      });
+    }
   }
 
   async componentDidMount() {
