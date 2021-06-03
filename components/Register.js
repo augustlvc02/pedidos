@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 
 import AppLoading from 'expo-app-loading';
 import { Container,Header,Content,Form,Item,Input,Text,Left,Button,
-Icon, Body,Title,Right, View, Label, Picker, List, ListItem,Card,CardItem, Toast} from 'native-base';
+Icon, Body,Title,Right, View, Label, Picker, List, ListItem,Card,CardItem, Toast, Root} from 'native-base';
 import * as Font from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
 import { NavigationContainer } from '@react-navigation/native';
@@ -20,7 +20,6 @@ export default class Register extends React.Component {
       isReady: false,
       sucursalid_FK: 0,
       proveedorid_FK: null,
-      //fecha: '',
       fecha: '',
       estado:'' ,
       errorMessage: '',
@@ -42,8 +41,7 @@ export default class Register extends React.Component {
       pedidodetalle: [
         /*
         {
-          pedido_detalleid: 0,
-          pedidoid_FK: 0,
+          nombre_producto: 0,
           productoid_FK: 0,
           cantidad: 0
         }
@@ -53,138 +51,120 @@ export default class Register extends React.Component {
     };  
   }
   
-  ListarProveedor = () =>{
-    const Url = "https://tesisanemia.000webhostapp.com/TesisAnemia2/JSonListProveedor.php";
-
-    fetch(Url,{
-      method:'GET',
-      headers:{
-      'Accept':'application/json',
-      'Content-Type': 'application/json'
-    }
-    }).then((respuesta)=> respuesta.json())
-    .then((respuestaJson) => {
-      const data = respuestaJson;
+  ListarProveedor = async() =>{
+    try{
+      const Url = "https://tesisanemia.000webhostapp.com/TesisAnemia2/JSonListProveedor.php";
+      const response = await fetch(Url,{
+        method:'GET',
+        headers:{
+          'Accept':'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+      const data = await response.json();
       this.setState({ proveedores: data.proveedor });
-      //console.log('DATA:::',this.state.proveedores);
-    })
-    .catch((error) => {
-    console.log(error);
-    })
-  }
-
-  ListarProducto = () =>{
-    const Url = "https://tesisanemia.000webhostapp.com/TesisAnemia2/JSonListProducto.php";
-
-    fetch(Url,{
-      method:'GET',
-      headers:{
-      'Accept':'application/json',
-      'Content-Type': 'application/json'
+    } catch (e) {
+      console.log(e);
     }
-    }).then((respuesta)=> respuesta.json())
-    .then((respuestaJson) => {
-      const data = respuestaJson;
-      this.setState({ productos: data.producto });
-      //console.log('DATA:::',this.state.productos);
-    })
-    .catch((error) => {
-    console.log(error);
-    })
   }
 
-  mostrarToast() {
+  ListarProducto = async() =>{
+    try{
+      const Url = "https://tesisanemia.000webhostapp.com/TesisAnemia2/JSonListProducto.php";
+      const response = await fetch(Url,{
+        method:'GET',
+        headers:{
+        'Accept':'application/json',
+        'Content-Type': 'application/json'
+        }
+      });
+      const data = await response.json();
+      this.setState({ productos: data.producto });
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  mostrarToast(mensaje) {
     //oculta spinner y muestra toast
     //this.setState({showSpinner: false});
     Toast.show({
-      text: this.state.errorMessage,
+      text: mensaje,
       buttonText: "Ok",
       duration: 3000
     });
  }
   
-  GuardarRegistroPedidoDetalle = () =>{
+  GuardarRegistroPedidoDetalle = async() =>{
     const {sucursalid_FK} = this.state;
     const {proveedorid_FK} = this.state;
     const {fecha} = this.state;
     const {estado} = this.state;
     const {pedidodetalle} = this.state;
     console.log("pedidosdetalle:",pedidodetalle);
-
+    /*
     const detalleLenght = this.state.pedidodetalle.length;
     console.log("detalleLenght:",detalleLenght);
+    */
+    let mensaje = '';
+    let seguardo=false;
+    const fechaLenght=fecha.length;
+    const estadoLenght=estado.length;
+    const detalleLenght = pedidodetalle.length;
 
-    if( sucursalid_FK==0 || proveedorid_FK==0 || fecha=='' || estado=='' || detalleLenght==0 ){
-      if( detalleLenght==0){
-        this.setState({errorMessage: "Detalle no puede estar vacio"}, function () {
-          this.mostrarToast();
-        });
-      } else if( sucursalid_FK==0){
-        this.setState({errorMessage: "Sucursal no puede estar vacia"}, function () {
-          this.mostrarToast();
-        }); 
-      } else if( proveedorid_FK==0){
-        this.setState({errorMessage: "Proveedor no puede estar vacio"}, function () {
-          this.mostrarToast();
-        }); 
-      }  else if( fecha==''){
-        this.setState({errorMessage: "Fecha no puede estar vacia"}, function () {
-          this.mostrarToast();
-        }); 
-      }  else if( estado==''){
-        this.setState({errorMessage: "Estado no puede estar vacio"}, function () {
-          this.mostrarToast();
-        }); 
-      }
+    if( sucursalid_FK==0 || proveedorid_FK==0 || fechaLenght==0 || estadoLenght==0 || detalleLenght==0 ){
+      if( detalleLenght==0) mensaje = "Detalle no puede estar vacio";
+      else if( sucursalid_FK==0) mensaje = "Sucursal no puede estar vacia";
+      else if( proveedorid_FK==0) mensaje = "Proveedor no puede estar vacio";
+      else if( fechaLenght=='') mensaje = "Fecha no puede estar vacia";
+      else if( estadoLenght=='') mensaje = "Estado no puede estar vacio";
     }
     else{
-      //const Url = "https://tesisanemia.000webhostapp.com/TesisAnemia2/JSonInsertProductoPOST.php";
-      const Url = "https://project-code-dev.herokuapp.com/api/v1/pedido";
-
-      fetch(Url,{
-      method:'POST',
-      headers:{
-        'Accept':'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(
-        {
+      try{
+      const jason = JSON.stringify({
           "sucursalid_FK": sucursalid_FK,
           "proveedorid_FK": proveedorid_FK,
           "fecha": fecha,
           "estado": estado,
           "detalles": pedidodetalle
-        }
-      )
+      });
+      console.log(jason);
+      /*
+        //const Url = "https://tesisanemia.000webhostapp.com/TesisAnemia2/JSonInsertProductoPOST.php";
+        const Url = "https://project-code-dev.herokuapp.com/api/v1/pedido";
 
-      //}).then((respuesta)=> respuesta.text())
-    }).then((respuesta)=> respuesta.json())
-
-      .then((respuestaJson) => {
-        const data = respuestaJson;
-        console.log("data:",data);
-        if(data.message){
-          this.setState({errorMessage: data.message});
-        }else{
-          this.setState({errorMessage: 'No registró'});
-        }
-        
-        Toast.show({
-          text: this.state.errorMessage,
-          buttonText: "Ok",
-          duration: 3000
+        const response = await fetch(Url,{
+          method:'POST',
+          headers:{
+            'Accept':'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+              "sucursalid_FK": sucursalid_FK,
+              "proveedorid_FK": proveedorid_FK,
+              "fecha": fecha,
+              "estado": estado,
+              "detalles": pedidodetalle
+          })
         });
-        
-      })
-      
-      .then ((res) => {
-          console.log("RES:",res);
-      })
-      .catch((error) => {
-        console.log("ERROR:",error);
-      })
-    }
 
+        const data = await response.json();
+        console.log(data);
+        if(data.message){
+          mensaje = data.message;
+        }else{
+          mensaje = 'No registró';
+        }
+      */
+      } catch (e) {
+        console.log(e);
+        mensaje = "Error:".e;
+      }
+    }
+    //console.log('MENSAJE:',mensaje);
+    this.mostrarToast(mensaje);
+    if(seguardo){
+    }
   }
 
   GuardarDetallePedido = () =>{
@@ -193,116 +173,68 @@ export default class Register extends React.Component {
     const {selectedText} = this.state;
     const {isEdit} = this.state;
     const {position} = this.state;
-    console.log("productoid_FK:",productoid_FK);
-    /*
-    this.setState({
-      pedidodetalles: [
-       ...this.state.pedidodetalles,
-        {
-          pedido_detalleid: 0,
-          pedidoid_FK: 0,
-          productoid_FK: productoid,
-          cantidad: cantidad
-        }
-      ]
-    })
-    */
-    console.log("pedidosantes:",this.state.pedidodetalle);
-    const producto = {
-      'nombre_producto': selectedText,
-      'productoid_FK': productoid_FK,
-      'cantidad': cantidad
-    };
-    if(isEdit){
-      console.log("edito");
-      //guardar el producto en la posicion
-      this.state.pedidodetalle[position] = producto;
-    }
-    else{
-      console.log("agrego");
-      this.state.pedidodetalle.push(producto);
-    }
-    console.log("pedidos:",this.state.pedidodetalle);
-    this.toggleModal(!this.state.modalVisible);
-  }
+    const {pedidodetalle} = this.state;
 
-  Register = () =>{
-    //alert('HOLA');
-    const {sucursalid_FK} = this.state;
-    //const {} = this.state;
-    const {proveedorid_FK} = this.state;
-    const {fecha} = this.state;
-    const {estado} = this.state;
+    const cantidadLenght = cantidad.length;
+    let mensaje = '';
+    let repetido = false;
+    let repetidoValid = false;
+  
+    // si es editar y el producto a editar se mantiene no validar repetido dentro de lista
+    if(isEdit && pedidodetalle[position].productoid_FK == productoid_FK) repetidoValid=true;
 
-    console.log("sucursalid_FK:",sucursalid_FK);
-    console.log("proveedorid_FK:",proveedorid_FK);
-    console.log("fecha:",fecha);
-    console.log("estado:",estado);
-
-    //const Url = "https://tesisanemia.000webhostapp.com/TesisAnemia2/JSonInsertPedidoPOST.php";
-    const Url = "https://project-code-dev.herokuapp.com/api/v1/pedido";
-
-    fetch(Url,{
-     method:'POST',
-     headers:{
-       'Accept':'application/json',
-       'Content-Type': 'application/json'
-     },
-     body: JSON.stringify(
-      {
-        "sucursalid_FK": sucursalid_FK,
-        "proveedorid_FK": proveedorid_FK,
-        "fecha": fecha,
-        "estado": estado
-      })
-    }).then((respuesta)=> respuesta.text())
-    
-    .then((respuestaJson) => {
-      const data = respuestaJson;
-      console.log("data:",data);
-      if(data == 'registra')
-      {
-        //Alert.alert("El pedido esta registrado");
-        this.setState({errorMessage: 'El pedido esta registrado'});
+    // si la validacion es false consideran elementos de la lista
+    if(!repetidoValid){
+      console.log('entro aqui');
+      for (const producto in pedidodetalle) {
+        // si el producto se encuentra ya registrado manda repetido
+        if(pedidodetalle[producto].productoid_FK == productoid_FK) repetido=true;
       }
-      else
-      {
-        //Alert.alert("No registró");
-        this.setState({errorMessage: 'No registró'});
+    }
+
+    if( productoid_FK==0 || cantidad==0 || cantidadLenght==0 || repetido)
+    {
+      if(productoid_FK==0) mensaje='Producto no puede estar vacio';
+      else if(cantidad==0 || cantidadLenght==0) mensaje='Cantidad no puede estar vacia o igual a 0';
+      else if(repetido) mensaje='Producto ya se encuentra agregado en el detalle';
+      this.mostrarToast(mensaje);
+    }
+    else
+    {
+      //console.log("productoid_FK:",productoid_FK);
+      //console.log("pedidosantes:",this.state.pedidodetalle);
+      const producto = {
+        'nombre_producto': selectedText,
+        'productoid_FK': productoid_FK,
+        'cantidad': cantidad
+      };
+      if(isEdit){
+        console.log("edito");
+        //guardar el producto en la posicion
+        this.state.pedidodetalle[position] = producto;
       }
-      Toast.show({
-        text: this.state.errorMessage,
-        buttonText: "Ok",
-        duration: 3000
-      });
-      
-      //console.log(respuestaJson);
-      //Alert.alert("app",data);
-      //guardarlo de forma local el token
-      //AsyncStorage.setItem('token','86');
-    })
-    
-    .then ((res) => {
-        console.log("RES:",res);
-  })
-    .catch((error) => {
-      console.log("ERROR:",error);
-    })
-  }
-
-  AgregarDetalle = () => {
-
+      else{
+        console.log("agrego");
+        //agregar producto en arreglo
+        this.state.pedidodetalle.push(producto);
+      }
+      //console.log("pedidos:",this.state.pedidodetalle);
+      this.toggleModal(!this.state.modalVisible);
+    }
+  
   }
 
   toggleModal(visible) {
+    //carge los productos
+    this.ListarProducto();
     this.setState({ modalVisible: visible,
-                    cantidad: 0,
+                    cantidad: '',
                     selectedText: '',
                     productoid_FK: 0,
                     isEdit: false,
                     position: 0
     });
- }
+  }
 
   async componentDidMount() {
     await Font.loadAsync({
@@ -313,20 +245,19 @@ export default class Register extends React.Component {
     this.setState({ isReady: true });
 
     this.ListarProveedor();
-    this.ListarProducto();
-    console.log("Proveedor:",this.state.proveedores);
+    //this.ListarProducto();
+    //console.log("Proveedor:",this.state.proveedores);
     //console.log("id:", this.state.sucursalid_FK);
 
-    //prueba
-    
+    //producto prueba
+    /*
     const producto = {
       'nombre_producto': 'AAAAAAAAAAAAAAAAA',
       'productoid_FK': 1,
       'cantidad': 4
     };
     this.state.pedidodetalle.push(producto);
-    
-    //
+    */
   }
   
   // picker proveedores
@@ -477,16 +408,14 @@ export default class Register extends React.Component {
             transparent={true}
             visible = {this.state.modalVisible}
             onRequestClose = {() => { console.log("Modal has been closed.") } }> 
+            <Root>
             <Form style= {styles.modal}>
             <Card style= {styles.modal2}>
             <CardItem >
             <Form>
-            {/* <Form style= {styles.modal2}> */}
-            
               <Button style = {styles.buttonBot} onPress = {() => { this.toggleModal(!this.state.modalVisible)}}>
                 <Icon name='md-arrow-undo' />
               </Button>
-              
                 <RNPicker
                   dataSource={this.state.productos}
                   dummyDataSource={this.state.productos}
@@ -509,59 +438,23 @@ export default class Register extends React.Component {
                   //dropDownImage={require("./res/ic_drop_down.png")}
                   selectedValue={(index, item) => this._selectedValue(index, item)}
                 />
-               {/* <RNPicker
-                  dataSource={this.state.dataSource}
-                  dummyDataSource={this.state.dataSource}
-                  defaultValue={false}
-                  pickerTitle={"Country Picker"}
-                  showSearchBar={true}
-                  disablePicker={false}
-                  changeAnimation={"none"}
-                  searchBarPlaceHolder={"Search....."}
-                  showPickerTitle={true}
-                  searchBarContainerStyle={this.props.searchBarContainerStyle}
-                  pickerStyle={styles.pickerStyle}
-                  itemSeparatorStyle={styles.itemSeparatorStyle}
-                  pickerItemTextStyle={styles.listTextViewStyle}
-                  selectedLabel={this.state.selectedText}
-                  placeHolderLabel={this.state.placeHolderText}
-                  selectLabelTextStyle={styles.selectLabelTextStyle}
-                  placeHolderTextStyle={styles.placeHolderTextStyle}
-                  dropDownImageStyle={styles.dropDownImageStyle}
-                  //dropDownImage={require("./res/ic_drop_down.png")}
-                  selectedValue={(index, item) => this._selectedValue(index, item)}
-                />  */}
-                {/* <Picker
-                  mode="dropdown"
-                  style={{ height: 50, width: 100 }}
-                  //style={{ marginRight: 80 }}
-                  selectedValue={this.state.productoid}
-                  onValueChange={ (value) => ( this.setState({productoid : value}) )}>
-                  { this.productosList() }
-                </Picker> */}
-
-                
-              
-              
                 <Item>
                   <Input 
                   value={String(this.state.cantidad)}
                   placeholder="Cantidad" keyboardType="number-pad" onChangeText={cantidad => this.setState({cantidad})}/>
-                </Item>   
-
+                </Item>
               <Button block onPress={this.GuardarDetallePedido}>
               { !this.state.isEdit ?
                 <Text>Agregar</Text>
                 :
                 <Text>Editar</Text>
               }
-
-              
               </Button>
             </Form>
             </CardItem>
             </Card>
             </Form>
+            </Root>
           </Modal>
           <Content>
           <List>
