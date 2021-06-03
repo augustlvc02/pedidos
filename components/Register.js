@@ -19,7 +19,7 @@ export default class Register extends React.Component {
       titulo: "Register",
       isReady: false,
       sucursalid_FK: 0,
-      proveedorid_FK: null,
+      proveedorid_FK: 0,
       fecha: '',
       estado:'' ,
       errorMessage: '',
@@ -33,8 +33,9 @@ export default class Register extends React.Component {
 
       productoid_FK: 0,
       cantidad: 0,
-      placeHolderText: "Seleccionar Producto",
+      //placeHolderText: "Seleccionar Producto",
       selectedText: "",
+      selectedTextProveedor: "",
       isEdit: false,
       position: 0,
 
@@ -118,6 +119,8 @@ export default class Register extends React.Component {
       else if( proveedorid_FK==0) mensaje = "Proveedor no puede estar vacio";
       else if( fechaLenght=='') mensaje = "Fecha no puede estar vacia";
       else if( estadoLenght=='') mensaje = "Estado no puede estar vacio";
+      console.log('MENSAJE',mensaje);
+      this.mostrarToast(mensaje);
     }
     else{
       try{
@@ -162,7 +165,7 @@ export default class Register extends React.Component {
       }
     }
     //console.log('MENSAJE:',mensaje);
-    this.mostrarToast(mensaje);
+    //this.mostrarToast(mensaje);
     if(seguardo){
     }
   }
@@ -329,6 +332,13 @@ export default class Register extends React.Component {
    // console.log("id:",this.state.productoid);
   }
 
+  _selectedValueProv(index, item) {
+    this.setState({ selectedTextProveedor: item.razon_social, proveedorid_FK: item.proveedorid });
+    //console.log("seleccionado:",productoid);
+   // console.log("id:",this.state.productoid);
+   //<Picker.Item label={item.razon_social} key={item.ruc} value={item.proveedorid}  />
+  }
+
   render() {
     
     if (!this.state.isReady) {
@@ -357,16 +367,39 @@ export default class Register extends React.Component {
                   <Picker.Item label="Sucursal 4" value={4} />
                 </Picker>
             </Item>
-            <Item>
-              <Picker
+            {/* <Item> */}
+              {/* <Picker
                 mode="dropdown"
                 style={{ height: 50, width: 100 }}
                 //style={{ marginRight: 80 }}
                 selectedValue={this.state.proveedorid_FK}
                 onValueChange={ (value) => ( this.setState({proveedorid_FK : value}) )}>
                 { this.proveedoresList() }
-              </Picker>
-            </Item>
+              </Picker> */}
+              <RNPicker
+                  dataSource={this.state.proveedores}
+                  dummyDataSource={this.state.proveedores}
+                  defaultValue={this.state.selectedTextProveedor}
+                  pickerTitle={"Seleccionar Proveedor"}
+                  showSearchBar={true}
+                  disablePicker={false}
+                  changeAnimation={"none"}
+                  searchBarPlaceHolder={"Buscar....."}
+                  showPickerTitle={true}
+                  searchBarContainerStyle={this.props.searchBarContainerStyle}
+                  pickerStyle={styles.pickerStyle}
+                  itemSeparatorStyle={styles.itemSeparatorStyle}
+                  pickerItemTextStyle={styles.listTextViewStyle}
+                  selectedLabel={this.state.selectedTextProveedor}
+                  placeHolderLabel={this.state.placeHolderText}
+                  selectLabelTextStyle={styles.selectLabelTextStyle}
+                  placeHolderTextStyle={styles.placeHolderTextStyle}
+                  dropDownImageStyle={styles.dropDownImageStyle}
+                  //dropDownImage={require("./res/ic_drop_down.png")}
+                  //selectedValue={(index, item) => this._selectedValue(index, item)}
+                  selectedValue={(index, item) => this._selectedValueProv(index, item)}
+                />
+            {/* </Item> */}
             <Item>
               <DatePicker
                 style={{width: 200}}
@@ -420,7 +453,7 @@ export default class Register extends React.Component {
                   dataSource={this.state.productos}
                   dummyDataSource={this.state.productos}
                   defaultValue={this.state.selectedText}
-                  pickerTitle={this.state.placeHolderText}
+                  pickerTitle={"Seleccionar Producto"}
                   showSearchBar={true}
                   disablePicker={false}
                   changeAnimation={"none"}
