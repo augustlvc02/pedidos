@@ -1,17 +1,12 @@
 import React, {useState} from 'react';
 
 import AppLoading from 'expo-app-loading';
-import { Container,Header,Content,Form,Item,Input,Text,Left,Button,
-Icon, Body,Title,Right, View, Label, Picker, List, ListItem,Card,CardItem, 
-//Toast, 
-Root} from 'native-base';
+import { Container,Content,Form,Item,Input,Text,Button,
+Icon, Body,Right, Picker, List, ListItem,Card,CardItem} from 'native-base';
 import * as Font from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import { Alert, StyleSheet, ImageBackground, Modal, ScrollView} from 'react-native';
+import { Alert, StyleSheet, Modal} from 'react-native';
 import DatePicker from 'react-native-datepicker';
-import RNPicker from 'rn-modal-picker';
 import Cabecera from './Cabecera';
 import LookupModal from 'react-native-lookup-modal';
 import Toast from 'react-native-toast-message';
@@ -97,34 +92,25 @@ export default class Register extends React.Component {
   }
 
   mostrarToast(mensaje,modal) {
-    //oculta spinner y muestra toast
-    //this.setState({showSpinner: false});
-    /*
-    Toast.show({
-      text: mensaje,
-      buttonText: "Ok",
-      duration: 3000
-    });
-    */
-   if(modal)
-   {
-    this.myRef.current.show({
-      text1: mensaje,
-      position: 'bottom',
-      type: 'error',
-      visibilityTime: 500,
-    });
-   }
-   else
-   {
-    Toast.show({
-      text1: mensaje,
-      position: 'bottom',
-      type: 'error',
-      visibilityTime: 500,
-    });
+    if(modal)
+    {
+      this.myRef.current.show({
+        text1: mensaje,
+        position: 'bottom',
+        type: 'error',
+        visibilityTime: 500,
+      });
+    }
+    else
+    {
+      Toast.show({
+        text1: mensaje,
+        position: 'bottom',
+        type: 'error',
+        visibilityTime: 500,
+      });
+    }
   }
- }
   
   GuardarRegistroPedidoDetalle = async() =>{
     const {sucursalid_FK} = this.state;
@@ -156,14 +142,39 @@ export default class Register extends React.Component {
     }
     else{
       try{
-      const jason = JSON.stringify({
-          "sucursalid_FK": sucursalid_FK,
-          "proveedorid_FK": proveedor.proveedorid,
-          "fecha": fecha,
-          "estado": estado,
-          "detalles": pedidodetalles
-      });
-      console.log(jason);
+        /*
+        const jason = JSON.stringify({
+            "sucursalid_FK": sucursalid_FK,
+            "proveedorid_FK": proveedor.proveedorid,
+            "fecha": fecha,
+            "estado": estado,
+            "detalles": pedidodetalles
+        });
+        console.log(jason);
+        */
+        //const Url = "https://tesisanemia.000webhostapp.com/TesisAnemia2/JSonInsertProductoPOST.php";
+        const Url = "https://project-code-dev.herokuapp.com/api/v1/pedido";
+        const response = await fetch(Url,{
+          method:'POST',
+          headers:{
+            'Accept':'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            "sucursalid_FK": sucursalid_FK,
+            "proveedorid_FK": proveedor.proveedorid,
+            "fecha": fecha,
+            "estado": estado,
+            "detalles": pedidodetalles
+          })
+        });
+        const data = await response.json();
+        console.log(data);
+        if(data.message){
+          mensaje = data.message;
+        }else{
+          mensaje = 'No registró';
+        }
       } catch (e) {
         console.log(e);
         mensaje = "Error:".e;
@@ -250,21 +261,7 @@ export default class Register extends React.Component {
       ...Ionicons.font,
     });
     this.setState({ isReady: true });
-
     this.ListarProveedor();
-    //this.ListarProducto();
-    //console.log("Proveedor:",this.state.proveedores);
-    //console.log("id:", this.state.sucursalid_FK);
-
-    //producto prueba
-    /*
-    const producto = {
-      'nombre_producto': 'AAAAAAAAAAAAAAAAA',
-      'productoid_FK': 1,
-      'cantidad': 4
-    };
-    this.state.pedidodetalles.push(producto);
-    */
   }
   
   // picker proveedores
@@ -282,11 +279,6 @@ export default class Register extends React.Component {
        )))
   }
 
-  /*
-  _selectedValue(index, item) {
-    this.setState({ selectedText: item.nombre_producto});
-  }
-  */
   EditarProductoList(item) {
     //obtener la posicion
     let position = this.state.pedidodetalles.indexOf(item);
@@ -329,20 +321,6 @@ export default class Register extends React.Component {
     )
 
   }
-/*
-  _selectedValue(index, item) {
-    this.setState({ selectedText: item.nombre_producto, productoid_FK: item.productoid_FK });
-    //console.log("seleccionado:",productoid);
-   // console.log("id:",this.state.productoid);
-  }
-
-  _selectedValueProv(index, item) {
-    this.setState({ selectedTextProveedor: item.razon_social, proveedorid_FK: item.proveedorid });
-    //console.log("seleccionado:",productoid);
-   // console.log("id:",this.state.productoid);
-   //<Picker.Item label={item.razon_social} key={item.ruc} value={item.proveedorid}  />
-  }
-*/
   render() { 
     
     if (!this.state.isReady) {
@@ -351,9 +329,7 @@ export default class Register extends React.Component {
     
     return (
       <Container>
-
         <Cabecera {...this.props} titulo={this.state.titulo}/>
-        
         <Content padder contentContainerStyle={{flex:1}}>
           <Form>
             <Item>
@@ -371,17 +347,7 @@ export default class Register extends React.Component {
                   <Picker.Item label="Sucursal 4" value={4} />
                 </Picker>
             </Item>
-            {/* <Item> */}
-              {/* <Picker
-                mode="dropdown"
-                style={{ height: 50, width: 100 }}
-                //style={{ marginRight: 80 }}
-                selectedValue={this.state.proveedorid_FK}
-                onValueChange={ (value) => ( this.setState({proveedorid_FK : value}) )}>
-                { this.proveedoresList() }
-              </Picker> */}
-              <Item>
-              {/* style={{ height: 50, width: 100 }} */}
+            <Item>
               <LookupModal
                   selectButtonTextStyle={
                     {
@@ -410,31 +376,7 @@ export default class Register extends React.Component {
                   }) )}
                   displayKey={"name"}
               />
-              </Item>
-              {/* <RNPicker
-                  dataSource={this.state.proveedores}
-                  dummyDataSource={this.state.proveedores}
-                  defaultValue={this.state.selectedTextProveedor}
-                  pickerTitle={this.state.placeHolderTextProveedor}
-                  showSearchBar={true}
-                  disablePicker={false}
-                  changeAnimation={"none"}
-                  searchBarPlaceHolder={"Buscar....."}
-                  showPickerTitle={true}
-                  searchBarContainerStyle={this.props.searchBarContainerStyle}
-                  pickerStyle={styles.pickerStyle}
-                  itemSeparatorStyle={styles.itemSeparatorStyle}
-                  pickerItemTextStyle={styles.listTextViewStyle}
-                  selectedLabel={this.state.selectedTextProveedor}
-                  placeHolderLabel={this.state.placeHolderTextProveedor}
-                  selectLabelTextStyle={styles.selectLabelTextStyle}
-                  placeHolderTextStyle={styles.placeHolderTextStyle}
-                  dropDownImageStyle={styles.dropDownImageStyle}
-                  //dropDownImage={require("./res/ic_drop_down.png")}
-                  //selectedValue={(index, item) => this._selectedValue(index, item)}
-                  selectedValue={(index, item) => this._selectedValueProv(index, item)}
-                /> */}
-            {/* </Item> */}
+            </Item>
             <Item>
               <DatePicker
                 style={{width: 200}}
@@ -454,110 +396,80 @@ export default class Register extends React.Component {
                   dateInput: {
                     marginLeft: 36
                   }
-                  // ... You can check the source to find the other keys.
                 }}
                 onDateChange={(date) => {this.setState({fecha: date})}}/>
             </Item>
             <Item>
               <Input placeholder="Estado" onChangeText={estado => this.setState({estado})}/>
             </Item>
-
             <Button primary style = {styles.buttonTop} onPress = {() => {this.toggleModal(true)}}>
               <Icon name='add-outline' />
             </Button>
-
-          </Form>
-          {/*modal*/}        
+          </Form>      
           <Modal
             animationType = {"slide"}
-            //transparent = {false}
             transparent={true}
             visible = {this.state.modalVisible}
             onRequestClose = {() => { console.log("Modal has been closed.") } }> 
-            {/* <Root> */}
             <Form style= {styles.modal}>
-            <Card style= {styles.modal2}>
-            <CardItem >
-            <Form>
-              <Button style = {styles.buttonBot} onPress = {() => { this.toggleModal(!this.state.modalVisible)}}>
-                <Icon name='md-arrow-undo' />
-              </Button>
-                {/* <RNPicker
-                  dataSource={this.state.productos}
-                  dummyDataSource={this.state.productos}
-                  defaultValue={this.state.selectedText}
-                  pickerTitle={this.state.placeHolderTextProdcuto}
-                  showSearchBar={true}
-                  disablePicker={false}
-                  changeAnimation={"none"}
-                  searchBarPlaceHolder={"Buscar....."}
-                  showPickerTitle={true}
-                  searchBarContainerStyle={this.props.searchBarContainerStyle}
-                  pickerStyle={styles.pickerStyle}
-                  itemSeparatorStyle={styles.itemSeparatorStyle}
-                  pickerItemTextStyle={styles.listTextViewStyle}
-                  selectedLabel={this.state.selectedText}
-                  placeHolderLabel={this.state.placeHolderTextProdcuto}
-                  selectLabelTextStyle={styles.selectLabelTextStyle}
-                  placeHolderTextStyle={styles.placeHolderTextStyle}
-                  dropDownImageStyle={styles.dropDownImageStyle}
-                  //dropDownImage={require("./res/ic_drop_down.png")}
-                  selectedValue={(index, item) => this._selectedValue(index, item)}
-                /> */}
-                <Item>
-                <LookupModal
-                  selectButtonTextStyle={
-                    {
-                      fontSize: 15,
-                      flex:1,
-                      textAlign: 'left'
+              <Card style= {styles.modal2}>
+                <CardItem >
+                  <Form>
+                    <Button style = {styles.buttonBot} onPress = {() => { this.toggleModal(!this.state.modalVisible)}}>
+                      <Icon name='md-arrow-undo' />
+                    </Button>
+                      <Item>
+                      <LookupModal
+                        selectButtonTextStyle={
+                          {
+                            fontSize: 15,
+                            flex:1,
+                            textAlign: 'left'
+                          }
+                        }
+                        selectButtonStyle={
+                          {
+                            justifyContent: 'space-between',
+                            flexWrap: 'wrap',
+                            flexDirection: 'row' 
+                          }
+                        }
+                        itemTextStyle={{ fontSize: 15}}
+                        data={this.state.productos}
+                        value={this.state.pedidodetalle.producto}
+                        selectText={this.state.placeHolderTextProdcuto}
+                        placeholder={"Buscar"}
+                        onSelect={ (item) => this.setState({
+                          pedidodetalle: {
+                            ...this.state.pedidodetalle,
+                            producto: item
+                          }
+                        })}
+                        displayKey={"name"}
+                      />
+                      </Item>
+                      <Item>
+                        <Input
+                        value={this.state.pedidodetalle.cantidad}
+                        placeholder="Cantidad" keyboardType="number-pad"
+                        onChangeText={ (item) => this.setState({
+                          pedidodetalle: {
+                            ...this.state.pedidodetalle,
+                            cantidad: item
+                          }
+                        }) }/>
+                      </Item>
+                    <Button block onPress={this.GuardarDetallePedido}>
+                    { !this.state.isEdit ?
+                      <Text>Agregar</Text>
+                      :
+                      <Text>Editar</Text>
                     }
-                  }
-                  selectButtonStyle={
-                    {
-                      justifyContent: 'space-between',
-                      flexWrap: 'wrap',
-                      flexDirection: 'row' 
-                    }
-                  }
-                  itemTextStyle={{ fontSize: 15}}
-                  data={this.state.productos}
-                  value={this.state.pedidodetalle.producto}
-                  selectText={this.state.placeHolderTextProdcuto}
-                  placeholder={"Buscar"}
-                  onSelect={ (item) => this.setState({
-                    pedidodetalle: {
-                      ...this.state.pedidodetalle,
-                      producto: item
-                    }
-                  })}
-                  displayKey={"name"}
-                />
-                </Item>
-                <Item>
-                  <Input 
-                  //value={String(this.state.pedidodetalle.cantidad)}
-                  value={this.state.pedidodetalle.cantidad}
-                  placeholder="Cantidad" keyboardType="number-pad" //onChangeText={cantidad => this.setState({cantidad})}/>
-                  onChangeText={ (item) => this.setState({
-                    pedidodetalle: {
-                      ...this.state.pedidodetalle,
-                      cantidad: item
-                    }
-                  }) }/>
-                </Item>
-              <Button block onPress={this.GuardarDetallePedido}>
-              { !this.state.isEdit ?
-                <Text>Agregar</Text>
-                :
-                <Text>Editar</Text>
-              }
-              </Button>
+                    </Button>
+                  </Form>
+                </CardItem>
+              </Card>
             </Form>
-            </CardItem>
-            </Card>
-            </Form>
-            {/* </Root> */}
             <Toast ref={this.myRef} />
           </Modal>
           <Content>
