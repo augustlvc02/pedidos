@@ -1,9 +1,12 @@
 import React from 'react';
 import AppLoading from 'expo-app-loading';
-import { Container,Content,Form,Item,Input,Text,Button,Toast,Spinner } from 'native-base';
+import { Container,Content,Form,Item,Input,Text,Button,
+  //Toast,
+  Spinner,Icon } from 'native-base';
 import * as Font from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
 //import { AsyncStorage } from 'react-native';
+import Toast from 'react-native-toast-message';
 
 export default class Login extends React.Component {
   constructor(props) {
@@ -13,19 +16,31 @@ export default class Login extends React.Component {
       username:'',
       password:'' ,
       showSpinner: false,
+      showPass: false,
     };
     //this.loginClick = this.loginClick.bind(this);
   }
-  
+  //const [hidePass, setHidePass] = useState(true);
+
   mostrarToast(mensaje) {
     //oculta spinner y muestra toast
+    /*
     this.setState({showSpinner: false});
     Toast.show({
       text: mensaje,
       buttonText: "Ok",
       duration: 3000
     });
+    */
+    this.setState({showSpinner: false});
+    Toast.show({
+      text1: mensaje,
+      position: 'bottom',
+      type: 'error',
+      visibilityTime: 500,
+    });
   }
+
   /*
   guardarUsuario = async(usuario) => {
     try{
@@ -117,10 +132,18 @@ export default class Login extends React.Component {
         <Content padder contentContainerStyle={{flex:1,justifyContent: 'center'}}>
           <Form>
             <Item>
+              <Icon active name='person-outline' />
               <Input value={ this.state.username} placeholder="Username" onChangeText={username => this.setState({username})}/>
             </Item>
             <Item last>
-              <Input value={ this.state.password} placeholder="Password" secureTextEntry={true} onChangeText={password => this.setState({password})}/>
+              <Icon active name='lock-closed-outline'/>
+              <Input value={ this.state.password} placeholder="Password"
+                secureTextEntry={this.state.showPass ? false : true}
+                onChangeText={password => this.setState({password})}/>
+              <Icon 
+                active name={this.state.showPass ? 'eye-outline' : 'eye-off-outline'}
+                onPress={() => this.setState({ showPass: !this.state.showPass })}
+              />
             </Item>
             <Button block onPress={this.loginClick}>
               <Text>Login</Text>
