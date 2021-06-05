@@ -2,9 +2,7 @@ import React, {useState} from 'react';
 
 import AppLoading from 'expo-app-loading';
 import { Container,Header,Content,Form,Item,Input,Text,Left,Button,
-Icon, Body,Title,Right, View, Label, Picker, List, ListItem,Card,CardItem, 
-//Toast, 
-Root} from 'native-base';
+Icon, Body,Title,Right, View, Label, Picker, List, ListItem,Card,CardItem, Toast, Root} from 'native-base';
 import * as Font from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
 import { NavigationContainer } from '@react-navigation/native';
@@ -13,8 +11,6 @@ import { Alert, StyleSheet, ImageBackground, Modal, ScrollView} from 'react-nati
 import DatePicker from 'react-native-datepicker';
 import RNPicker from 'rn-modal-picker';
 import Cabecera from './Cabecera';
-import LookupModal from 'react-native-lookup-modal';
-import Toast from 'react-native-toast-message';
 
 export default class Register extends React.Component {
   constructor(props) {
@@ -23,7 +19,7 @@ export default class Register extends React.Component {
       titulo: "Register",
       isReady: false,
       sucursalid_FK: 0,
-      //proveedorid_FK: 0,
+      proveedorid_FK: 0,
       fecha: '',
       estado:'' ,
       errorMessage: '',
@@ -31,37 +27,31 @@ export default class Register extends React.Component {
       apellidoMaterno: '',
       apellidoPaterno: '',
       nombres: '',
-      
-      
+      proveedores: [],
+      productos: [],
       modalVisible: false,
-      placeHolderTextProdcuto: "Seleccionar Producto",
-      placeHolderTextProveedor: "Seleccionar Proveedor",
+
+      productoid_FK: 0,
+      cantidad: 0,
+      //placeHolderText: "Seleccionar Producto",
       selectedText: "",
       selectedTextProveedor: "",
       isEdit: false,
       position: 0,
 
-      productos: [],
-      proveedores: [],
-
-      pedidodetalle: {
-        'cantidad': 0,
-        producto:{
-          'productoid_FK': 0
-        }       
-      },
-
-      pedidodetalles: [],
-
-      pedido: {
-        proveedor:{
-          'proveedorid': 0
+      pedidodetalle: [
+        /*
+        {
+          nombre_producto: 0,
+          productoid_FK: 0,
+          cantidad: 0
         }
-      },
-    };
-    this.myRef = React.createRef();
-  }
+        */
+      ],
 
+    };  
+  }
+  
   ListarProveedor = async() =>{
     try{
       const Url = "https://tesisanemia.000webhostapp.com/TesisAnemia2/JSonListProveedor.php";
@@ -96,74 +86,79 @@ export default class Register extends React.Component {
     }
   }
 
-  mostrarToast(mensaje,modal) {
+  mostrarToast(mensaje) {
     //oculta spinner y muestra toast
     //this.setState({showSpinner: false});
-    /*
     Toast.show({
       text: mensaje,
       buttonText: "Ok",
       duration: 3000
     });
-    */
-   if(modal)
-   {
-    this.myRef.current.show({
-      text1: mensaje,
-      position: 'bottom',
-      type: 'error',
-      visibilityTime: 500,
-    });
-   }
-   else
-   {
-    Toast.show({
-      text1: mensaje,
-      position: 'bottom',
-      type: 'error',
-      visibilityTime: 500,
-    });
-  }
  }
   
   GuardarRegistroPedidoDetalle = async() =>{
     const {sucursalid_FK} = this.state;
-    const {pedido} = this.state;
+    const {proveedorid_FK} = this.state;
     const {fecha} = this.state;
     const {estado} = this.state;
-    const {pedidodetalles} = this.state;
-    const proveedor = pedido.proveedor;
-    //console.log("pedidosdetalles:",pedido);
-    console.log("Proveedor:",proveedor.proveedorid);
+    const {pedidodetalle} = this.state;
+    console.log("pedidosdetalle:",pedidodetalle);
     /*
-    const detalleLenght = this.state.pedidodetalles.length;
+    const detalleLenght = this.state.pedidodetalle.length;
     console.log("detalleLenght:",detalleLenght);
     */
     let mensaje = '';
     let seguardo=false;
     const fechaLenght=fecha.length;
     const estadoLenght=estado.length;
-    const detalleLenght = pedidodetalles.length;
+    const detalleLenght = pedidodetalle.length;
 
-    if( sucursalid_FK==0 || proveedor.proveedorid==0 || fechaLenght==0 || estadoLenght==0 || detalleLenght==0 ){
+    if( sucursalid_FK==0 || proveedorid_FK==0 || fechaLenght==0 || estadoLenght==0 || detalleLenght==0 ){
       if( detalleLenght==0) mensaje = "Detalle no puede estar vacio";
       else if( sucursalid_FK==0) mensaje = "Sucursal no puede estar vacia";
-      else if( proveedor.proveedorid==0) mensaje = "Proveedor no puede estar vacio";
+      else if( proveedorid_FK==0) mensaje = "Proveedor no puede estar vacio";
       else if( fechaLenght=='') mensaje = "Fecha no puede estar vacia";
       else if( estadoLenght=='') mensaje = "Estado no puede estar vacio";
       console.log('MENSAJE',mensaje);
-      this.mostrarToast(mensaje,false);
+      this.mostrarToast(mensaje);
     }
     else{
       try{
       const jason = JSON.stringify({
           "sucursalid_FK": sucursalid_FK,
-          "proveedorid_FK": proveedor.proveedorid,
+          "proveedorid_FK": proveedorid_FK,
           "fecha": fecha,
           "estado": estado,
-          "detalles": pedidodetalles
+          "detalles": pedidodetalle
       });
       console.log(jason);
+      /*
+        //const Url = "https://tesisanemia.000webhostapp.com/TesisAnemia2/JSonInsertProductoPOST.php";
+        const Url = "https://project-code-dev.herokuapp.com/api/v1/pedido";
+
+        const response = await fetch(Url,{
+          method:'POST',
+          headers:{
+            'Accept':'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+              "sucursalid_FK": sucursalid_FK,
+              "proveedorid_FK": proveedorid_FK,
+              "fecha": fecha,
+              "estado": estado,
+              "detalles": pedidodetalle
+          })
+        });
+
+        const data = await response.json();
+        console.log(data);
+        if(data.message){
+          mensaje = data.message;
+        }else{
+          mensaje = 'No registró';
+        }
+      */
       } catch (e) {
         console.log(e);
         mensaje = "Error:".e;
@@ -176,70 +171,71 @@ export default class Register extends React.Component {
   }
 
   GuardarDetallePedido = () =>{
-    const {pedidodetalles} = this.state;
-    const {pedidodetalle} = this.state;
-    //const {producto} = this.state.pedidodetalle;
+    const {productoid_FK} = this.state;
+    const {cantidad} = this.state;
+    const {selectedText} = this.state;
     const {isEdit} = this.state;
     const {position} = this.state;
-    const producto = pedidodetalle.producto;
+    const {pedidodetalle} = this.state;
 
-    //console.log('PED. DETALLES:',pedidodetalles);
-    console.log('PED. DETALLE:',pedidodetalle);
-    //console.log('PRODUCTO:',producto);
-
-    const cantidadLenght = pedidodetalle.cantidad.length;
+    const cantidadLenght = cantidad.length;
     let mensaje = '';
     let repetido = false;
     let repetidoValid = false;
-    
-    // si es editar y el pedidodetalle a editar se mantiene no validar repetido dentro de lista
-    if(isEdit && pedidodetalles[position].producto.productoid_FK == producto.productoid_FK) repetidoValid=true;
+  
+    // si es editar y el producto a editar se mantiene no validar repetido dentro de lista
+    if(isEdit && pedidodetalle[position].productoid_FK == productoid_FK) repetidoValid=true;
 
     // si la validacion es false consideran elementos de la lista
     if(!repetidoValid){
-      //console.log('entro aqui');
-      for (const peddet in pedidodetalles) {
+      console.log('entro aqui');
+      for (const producto in pedidodetalle) {
         // si el producto se encuentra ya registrado manda repetido
-        if(pedidodetalles[peddet].producto.productoid_FK == producto.productoid_FK) repetido=true;
+        if(pedidodetalle[producto].productoid_FK == productoid_FK) repetido=true;
       }
     }
 
-    if( producto.productoid_FK==0 || pedidodetalle.cantidad==0 || cantidadLenght==0 || repetido)
+    if( productoid_FK==0 || cantidad==0 || cantidadLenght==0 || repetido)
     {
-      if(producto.productoid_FK==0) mensaje='Producto no puede estar vacio';
-      else if(pedidodetalle.cantidad==0 || cantidadLenght==0) mensaje='Cantidad no puede estar vacia o igual a 0';
+      if(productoid_FK==0) mensaje='Producto no puede estar vacio';
+      else if(cantidad==0 || cantidadLenght==0) mensaje='Cantidad no puede estar vacia o igual a 0';
       else if(repetido) mensaje='Producto ya se encuentra agregado en el detalle';
-      this.mostrarToast(mensaje,true);
+      this.mostrarToast(mensaje);
     }
     else
     {
+      //console.log("productoid_FK:",productoid_FK);
+      //console.log("pedidosantes:",this.state.pedidodetalle);
+      const producto = {
+        'nombre_producto': selectedText,
+        'productoid_FK': productoid_FK,
+        'cantidad': cantidad
+      };
       if(isEdit){
         console.log("edito");
-        //guardar el pedidodetalle en la posicion
-        this.state.pedidodetalles[position] = pedidodetalle;
+        //guardar el producto en la posicion
+        this.state.pedidodetalle[position] = producto;
       }
       else{
         console.log("agrego");
-        //agregar pedido detalle en arreglo
-        this.state.pedidodetalles.push(pedidodetalle);
+        //agregar producto en arreglo
+        this.state.pedidodetalle.push(producto);
       }
-      //cierra el modal
+      //console.log("pedidos:",this.state.pedidodetalle);
       this.toggleModal(!this.state.modalVisible);
     }
+  
   }
 
   toggleModal(visible) {
     //carge los productos
     this.ListarProducto();
     this.setState({ modalVisible: visible,
+                    cantidad: '',
+                    selectedText: '',
+                    productoid_FK: 0,
                     isEdit: false,
-                    position: 0,
-                    pedidodetalle: {
-                      'cantidad': 0,
-                      producto:{
-                        'productoid_FK': 0
-                      }       
-                    },
+                    position: 0
     });
   }
 
@@ -263,7 +259,7 @@ export default class Register extends React.Component {
       'productoid_FK': 1,
       'cantidad': 4
     };
-    this.state.pedidodetalles.push(producto);
+    this.state.pedidodetalle.push(producto);
     */
   }
   
@@ -289,23 +285,23 @@ export default class Register extends React.Component {
   */
   EditarProductoList(item) {
     //obtener la posicion
-    let position = this.state.pedidodetalles.indexOf(item);
-    //console.log("click");
+    var position = this.state.pedidodetalle.indexOf(item);
+    
+    console.log("click");
     //abri el modal
     this.toggleModal(!this.state.modalVisible);
-    //console.log("item:",item);
+    console.log("item:",item);
     //setear el objeto
     this.setState({
       isEdit: true,
-      position: position,
-      pedidodetalle: {
-        'cantidad': item.cantidad,
-        producto:{
-          'name': item.producto.nombre_producto,
-          'nombre_producto': item.producto.nombre_producto,
-          'productoid_FK': item.producto.productoid_FK
-        }
+      cantidad: item.cantidad,
+      selectedText: item.nombre_producto,
+      productoid_FK: item.productoid_FK,
+      position: position
       }
+      , function () {
+      console.log("cantidad:",this.state.cantidad);
+      console.log("Producto:",this.state.selectedText);
     }); 
 
   }
@@ -319,17 +315,17 @@ export default class Register extends React.Component {
         {text: 'Cancelar', onPress: () => {return null}},
         {text: 'Eliminar', onPress: () => {
           //obtener la posicion
-          let pedidodetallenuevo = this.state.pedidodetalles;
-          let position = this.state.pedidodetalles.indexOf(item);
-          this.state.pedidodetalles.splice(position,1);
-          this.setState({pedidodetalles: pedidodetallenuevo});    
+          var pedidodetallenuevo = this.state.pedidodetalle;
+          var position = this.state.pedidodetalle.indexOf(item);
+          this.state.pedidodetalle.splice(position,1);
+          this.setState({pedidodetalle: pedidodetallenuevo});    
         }},
       ],
       { cancelable: false }
     )
 
   }
-/*
+
   _selectedValue(index, item) {
     this.setState({ selectedText: item.nombre_producto, productoid_FK: item.productoid_FK });
     //console.log("seleccionado:",productoid);
@@ -342,8 +338,8 @@ export default class Register extends React.Component {
    // console.log("id:",this.state.productoid);
    //<Picker.Item label={item.razon_social} key={item.ruc} value={item.proveedorid}  />
   }
-*/
-  render() { 
+
+  render() {
     
     if (!this.state.isReady) {
       return <AppLoading />;
@@ -380,42 +376,11 @@ export default class Register extends React.Component {
                 onValueChange={ (value) => ( this.setState({proveedorid_FK : value}) )}>
                 { this.proveedoresList() }
               </Picker> */}
-              <Item>
-              {/* style={{ height: 50, width: 100 }} */}
-              <LookupModal
-                  selectButtonTextStyle={
-                    {
-                      fontSize: 15,
-                      flex:1,
-                      textAlign: 'left'
-                    }
-                  }
-                  selectButtonStyle={
-                    {
-                      justifyContent: 'space-between',
-                      flexWrap: 'wrap',
-                      flexDirection: 'row' 
-                    }
-                  }
-                  itemTextStyle={{ fontSize: 15}}
-                  data={this.state.proveedores}
-                  value={this.state.pedido.proveedor}
-                  selectText={this.state.placeHolderTextProveedor}
-                  placeholder={"Buscar"}
-                  onSelect={ (item) => ( this.setState({
-                    pedido: {
-                      ...this.state.pedido,
-                      proveedor: item
-                    }
-                  }) )}
-                  displayKey={"name"}
-              />
-              </Item>
-              {/* <RNPicker
+              <RNPicker
                   dataSource={this.state.proveedores}
                   dummyDataSource={this.state.proveedores}
                   defaultValue={this.state.selectedTextProveedor}
-                  pickerTitle={this.state.placeHolderTextProveedor}
+                  pickerTitle={"Seleccionar Proveedor"}
                   showSearchBar={true}
                   disablePicker={false}
                   changeAnimation={"none"}
@@ -426,14 +391,14 @@ export default class Register extends React.Component {
                   itemSeparatorStyle={styles.itemSeparatorStyle}
                   pickerItemTextStyle={styles.listTextViewStyle}
                   selectedLabel={this.state.selectedTextProveedor}
-                  placeHolderLabel={this.state.placeHolderTextProveedor}
+                  placeHolderLabel={this.state.placeHolderText}
                   selectLabelTextStyle={styles.selectLabelTextStyle}
                   placeHolderTextStyle={styles.placeHolderTextStyle}
                   dropDownImageStyle={styles.dropDownImageStyle}
                   //dropDownImage={require("./res/ic_drop_down.png")}
                   //selectedValue={(index, item) => this._selectedValue(index, item)}
                   selectedValue={(index, item) => this._selectedValueProv(index, item)}
-                /> */}
+                />
             {/* </Item> */}
             <Item>
               <DatePicker
@@ -465,6 +430,8 @@ export default class Register extends React.Component {
             <Button primary style = {styles.buttonTop} onPress = {() => {this.toggleModal(true)}}>
               <Icon name='add-outline' />
             </Button>
+            
+
 
           </Form>
           {/*modal*/}        
@@ -474,7 +441,7 @@ export default class Register extends React.Component {
             transparent={true}
             visible = {this.state.modalVisible}
             onRequestClose = {() => { console.log("Modal has been closed.") } }> 
-            {/* <Root> */}
+            <Root>
             <Form style= {styles.modal}>
             <Card style= {styles.modal2}>
             <CardItem >
@@ -482,11 +449,11 @@ export default class Register extends React.Component {
               <Button style = {styles.buttonBot} onPress = {() => { this.toggleModal(!this.state.modalVisible)}}>
                 <Icon name='md-arrow-undo' />
               </Button>
-                {/* <RNPicker
+                <RNPicker
                   dataSource={this.state.productos}
                   dummyDataSource={this.state.productos}
                   defaultValue={this.state.selectedText}
-                  pickerTitle={this.state.placeHolderTextProdcuto}
+                  pickerTitle={"Seleccionar Producto"}
                   showSearchBar={true}
                   disablePicker={false}
                   changeAnimation={"none"}
@@ -497,54 +464,17 @@ export default class Register extends React.Component {
                   itemSeparatorStyle={styles.itemSeparatorStyle}
                   pickerItemTextStyle={styles.listTextViewStyle}
                   selectedLabel={this.state.selectedText}
-                  placeHolderLabel={this.state.placeHolderTextProdcuto}
+                  placeHolderLabel={this.state.placeHolderText}
                   selectLabelTextStyle={styles.selectLabelTextStyle}
                   placeHolderTextStyle={styles.placeHolderTextStyle}
                   dropDownImageStyle={styles.dropDownImageStyle}
                   //dropDownImage={require("./res/ic_drop_down.png")}
                   selectedValue={(index, item) => this._selectedValue(index, item)}
-                /> */}
-                <Item>
-                <LookupModal
-                  selectButtonTextStyle={
-                    {
-                      fontSize: 15,
-                      flex:1,
-                      textAlign: 'left'
-                    }
-                  }
-                  selectButtonStyle={
-                    {
-                      justifyContent: 'space-between',
-                      flexWrap: 'wrap',
-                      flexDirection: 'row' 
-                    }
-                  }
-                  itemTextStyle={{ fontSize: 15}}
-                  data={this.state.productos}
-                  value={this.state.pedidodetalle.producto}
-                  selectText={this.state.placeHolderTextProdcuto}
-                  placeholder={"Buscar"}
-                  onSelect={ (item) => this.setState({
-                    pedidodetalle: {
-                      ...this.state.pedidodetalle,
-                      producto: item
-                    }
-                  })}
-                  displayKey={"name"}
                 />
-                </Item>
                 <Item>
                   <Input 
-                  //value={String(this.state.pedidodetalle.cantidad)}
-                  value={this.state.pedidodetalle.cantidad}
-                  placeholder="Cantidad" keyboardType="number-pad" //onChangeText={cantidad => this.setState({cantidad})}/>
-                  onChangeText={ (item) => this.setState({
-                    pedidodetalle: {
-                      ...this.state.pedidodetalle,
-                      cantidad: item
-                    }
-                  }) }/>
+                  value={String(this.state.cantidad)}
+                  placeholder="Cantidad" keyboardType="number-pad" onChangeText={cantidad => this.setState({cantidad})}/>
                 </Item>
               <Button block onPress={this.GuardarDetallePedido}>
               { !this.state.isEdit ?
@@ -557,17 +487,16 @@ export default class Register extends React.Component {
             </CardItem>
             </Card>
             </Form>
-            {/* </Root> */}
-            <Toast ref={this.myRef} />
+            </Root>
           </Modal>
           <Content>
           <List>
-            { this.state.pedidodetalles.map(item =>(
-            <ListItem key={item.producto.productoid_FK} onPress={() => this.EditarProductoList(item)}> 
+            { this.state.pedidodetalle.map(item =>(
+            <ListItem key={item.productoid_FK} onPress={() => this.EditarProductoList(item)}> 
               <Body>
-                <Text>Nombre: {item.producto.nombre_producto}</Text>
+                <Text>Nombre: {item.nombre_producto}</Text>
                 <Text note >Cantidad: {item.cantidad}</Text>
-                <Text note>Id: {item.producto.productoid_FK}</Text>
+                <Text note>Id: {item.productoid_FK}</Text>
               </Body>
               <Right>
                 <Button transparent style = {styles.buttonRight} onPress={() => this.EliminarProductoList(item)}>

@@ -10,7 +10,6 @@ import ListarPedidos from './components/ListarPedidos';
 import { Alert } from "react-native";
 import CustomDrawerContent from './components/CustomDrawerContent';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Toast from 'react-native-toast-message';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -75,7 +74,6 @@ export default function App() {
           initialParams={{ setLoggedIn, guardarUsuario }}/>
         </Stack.Navigator>
         )}
-        <Toast ref={(ref) => Toast.setRef(ref)} />
       </NavigationContainer>
     </Root>
   );
