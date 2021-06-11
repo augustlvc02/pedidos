@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useState} from 'react';
+import {useState,useEffect} from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createDrawerNavigator} from '@react-navigation/drawer';
@@ -43,6 +43,15 @@ export default function App() {
   }
 
   obtenerUsuario();
+  /*
+  obtenerSoloUsuario().then((value) => 
+    {
+      const user = value;
+      console.log('us:',user)
+    }
+  )
+  */
+  
 
   const setLoggedOut = () => {
     Alert.alert(
@@ -67,7 +76,8 @@ export default function App() {
           drawerContent={(props) => <CustomDrawerContent {...props} setLoggedOut={ setLoggedOut }/>}>
           <Drawer.Screen name="Register" component={Register} />
           <Drawer.Screen name="ListarPedidos" component={ListarPedidos}
-          initialParams={{ setLoggedIn}}/>
+          // initialParams={{ setLoggedIn, obtenerSoloUsuario }}
+          />
         </Drawer.Navigator>
         ) : (
         <Stack.Navigator>

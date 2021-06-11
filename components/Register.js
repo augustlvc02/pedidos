@@ -5,11 +5,14 @@ import { Container,Content,Form,Item,Input,Text,Button,
 Icon, Body,Right, Picker, List, ListItem,Card,CardItem} from 'native-base';
 import * as Font from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
-import { Alert, StyleSheet, Modal} from 'react-native';
+import { Alert, StyleSheet//, Modal
+} from 'react-native';
 import DatePicker from 'react-native-datepicker';
 import Cabecera from './Cabecera';
 import LookupModal from 'react-native-lookup-modal';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
+import Modal from 'react-native-modal';
 
 export default class Register extends React.Component {
   constructor(props) {
@@ -17,7 +20,7 @@ export default class Register extends React.Component {
     this.state = {
       titulo: "Register",
       isReady: false,
-      sucursalid_FK: 0,
+      //sucursalid_FK: 0,
       //proveedorid_FK: 0,
       fecha: '',
       estado:'' ,
@@ -31,8 +34,6 @@ export default class Register extends React.Component {
       modalVisible: false,
       placeHolderTextProdcuto: "Seleccionar Producto",
       placeHolderTextProveedor: "Seleccionar Proveedor",
-      selectedText: "",
-      selectedTextProveedor: "",
       isEdit: false,
       position: 0,
 
@@ -53,9 +54,23 @@ export default class Register extends React.Component {
           'proveedorid': 0
         }
       },
+
+      usuario: {
+        'sucursalid_FK': 0
+      },
     };
-    this.myRef = React.createRef();
+    this.myRef = React.createRef();    
   }
+
+  obtenerSoloUsuario = async() => {
+    try{
+      const usuario = await AsyncStorage.getItem('sesion_usuario');
+      this.setState({ usuario: JSON.parse(usuario) });
+    } catch (e) {
+      //console.log(e);
+    }
+  }
+
 
   ListarProveedor = async() =>{
     try{
@@ -91,13 +106,13 @@ export default class Register extends React.Component {
     }
   }
 
-  mostrarToast(mensaje,modal) {
+  mostrarToast(mensaje,modal,type) {
     if(modal)
     {
       this.myRef.current.show({
         text1: mensaje,
         position: 'bottom',
-        type: 'error',
+        type: type,
         visibilityTime: 500,
       });
     }
@@ -106,52 +121,43 @@ export default class Register extends React.Component {
       Toast.show({
         text1: mensaje,
         position: 'bottom',
-        type: 'error',
+        type: type,
         visibilityTime: 500,
       });
     }
   }
   
   GuardarRegistroPedidoDetalle = async() =>{
-    const {sucursalid_FK} = this.state;
+    //const {sucursalid_FK} = this.state;
+    const {usuario} = this.state;
     const {pedido} = this.state;
     const {fecha} = this.state;
     const {estado} = this.state;
     const {pedidodetalles} = this.state;
     const proveedor = pedido.proveedor;
-    //console.log("pedidosdetalles:",pedido);
-    console.log("Proveedor:",proveedor.proveedorid);
     /*
     const detalleLenght = this.state.pedidodetalles.length;
     console.log("detalleLenght:",detalleLenght);
     */
+    console.log('Usuario::',usuario);
+
     let mensaje = '';
+    let type = 'error';
     let seguardo=false;
     const fechaLenght=fecha.length;
     const estadoLenght=estado.length;
     const detalleLenght = pedidodetalles.length;
 
-    if( sucursalid_FK==0 || proveedor.proveedorid==0 || fechaLenght==0 || estadoLenght==0 || detalleLenght==0 ){
+    if( usuario.sucursalid_FK==0 || proveedor.proveedorid==0 || fechaLenght==0 || estadoLenght==0 || detalleLenght==0 ){
       if( detalleLenght==0) mensaje = "Detalle no puede estar vacio";
-      else if( sucursalid_FK==0) mensaje = "Sucursal no puede estar vacia";
+      else if( usuario.sucursalid_FK==0) mensaje = "Sucursal no puede estar vacia";
       else if( proveedor.proveedorid==0) mensaje = "Proveedor no puede estar vacio";
       else if( fechaLenght=='') mensaje = "Fecha no puede estar vacia";
       else if( estadoLenght=='') mensaje = "Estado no puede estar vacio";
       console.log('MENSAJE',mensaje);
-      this.mostrarToast(mensaje,false);
     }
     else{
       try{
-        /*
-        const jason = JSON.stringify({
-            "sucursalid_FK": sucursalid_FK,
-            "proveedorid_FK": proveedor.proveedorid,
-            "fecha": fecha,
-            "estado": estado,
-            "detalles": pedidodetalles
-        });
-        console.log(jason);
-        */
         //const Url = "https://tesisanemia.000webhostapp.com/TesisAnemia2/JSonInsertProductoPOST.php";
         const Url = "https://project-code-dev.herokuapp.com/api/v1/pedido";
         const response = await fetch(Url,{
@@ -161,16 +167,20 @@ export default class Register extends React.Component {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            "sucursalid_FK": sucursalid_FK,
+            "sucursalid_FK": usuario.sucursalid_FK,
             "proveedorid_FK": proveedor.proveedorid,
             "fecha": fecha,
             "estado": estado,
-            "detalles": pedidodetalles
+            "detalles": pedidodetalles.map((pedidodetalle)=>({
+              productoid_FK: pedidodetalle.producto.productoid_FK, 
+              cantidad: pedidodetalle.cantidad
+            }))
           })
         });
         const data = await response.json();
         console.log(data);
         if(data.message){
+          type = 'success';
           mensaje = data.message;
         }else{
           mensaje = 'No registró';
@@ -180,6 +190,7 @@ export default class Register extends React.Component {
         mensaje = "Error:".e;
       }
     }
+    this.mostrarToast(mensaje,false,type);
     //console.log('MENSAJE:',mensaje);
     //this.mostrarToast(mensaje);
     if(seguardo){
@@ -200,6 +211,7 @@ export default class Register extends React.Component {
 
     const cantidadLenght = pedidodetalle.cantidad.length;
     let mensaje = '';
+    let type = 'error';
     let repetido = false;
     let repetidoValid = false;
     
@@ -220,7 +232,7 @@ export default class Register extends React.Component {
       if(producto.productoid_FK==0) mensaje='Producto no puede estar vacio';
       else if(pedidodetalle.cantidad==0 || cantidadLenght==0) mensaje='Cantidad no puede estar vacia o igual a 0';
       else if(repetido) mensaje='Producto ya se encuentra agregado en el detalle';
-      this.mostrarToast(mensaje,true);
+      this.mostrarToast(mensaje,true,type);
     }
     else
     {
@@ -240,8 +252,8 @@ export default class Register extends React.Component {
   }
 
   toggleModal(visible) {
-    //carge los productos
-    this.ListarProducto();
+    //carge los productos cuando es visible
+    if(visible) this.ListarProducto();
     this.setState({ modalVisible: visible,
                     isEdit: false,
                     position: 0,
@@ -260,7 +272,17 @@ export default class Register extends React.Component {
       Roboto_medium: require('native-base/Fonts/Roboto_medium.ttf'),
       ...Ionicons.font,
     });
+    this.obtenerSoloUsuario();
+    //  obtenerSoloUsuario().then((value) => {
+    //    const user = value;
+    //    console.log('us:',user)
+    //  })
+
+    //console.log("US:",user);
+
     this.setState({ isReady: true });
+
+    
     this.ListarProveedor();
   }
   
@@ -319,8 +341,8 @@ export default class Register extends React.Component {
       ],
       { cancelable: false }
     )
-
   }
+
   render() { 
     
     if (!this.state.isReady) {
@@ -332,7 +354,7 @@ export default class Register extends React.Component {
         <Cabecera {...this.props} titulo={this.state.titulo}/>
         <Content padder contentContainerStyle={{flex:1}}>
           <Form>
-            <Item>
+            {/* <Item>
                 <Picker
                   mode="dropdown"
                   style={{ height: 50, width: 100 }}
@@ -346,7 +368,7 @@ export default class Register extends React.Component {
                   <Picker.Item label="Sucursal 3" value={3} />
                   <Picker.Item label="Sucursal 4" value={4} />
                 </Picker>
-            </Item>
+            </Item> */}
             <Item>
               <LookupModal
                   selectButtonTextStyle={
@@ -405,8 +427,74 @@ export default class Register extends React.Component {
             <Button primary style = {styles.buttonTop} onPress = {() => {this.toggleModal(true)}}>
               <Icon name='add-outline' />
             </Button>
-          </Form>      
+          </Form> 
           <Modal
+            isVisible={this.state.modalVisible}
+            backdropTransitionOutTiming={0}
+            animationIn={'zoomIn'}
+            animationOut={'zoomOut'}
+            style = {{  margin: 0 }}
+            onBackButtonPress={() => { this.setState({modalVisible: false}) }}>
+              
+                  <Form style={styles.modalContent}>
+                    <Button dark transparent
+                      style={styles.buttonRight}
+                      onPress = {() => { this.toggleModal(!this.state.modalVisible) }}>
+                      <Text style={styles.closeButtonText}>×</Text>
+                    </Button>
+                    <Item>
+                      <LookupModal
+                        selectButtonTextStyle={
+                          {
+                            fontSize: 15,
+                            flex:1,
+                            textAlign: 'left'
+                          }
+                        }
+                        selectButtonStyle={
+                          {
+                            justifyContent: 'space-between',
+                            flexWrap: 'wrap',
+                            flexDirection: 'row' 
+                          }
+                        }
+                        itemTextStyle={{ fontSize: 15}}
+                        data={this.state.productos}
+                        value={this.state.pedidodetalle.producto}
+                        selectText={this.state.placeHolderTextProdcuto}
+                        placeholder={"Buscar"}
+                        onSelect={ (item) => this.setState({
+                          pedidodetalle: {
+                            ...this.state.pedidodetalle,
+                            producto: item
+                          }
+                        })}
+                        displayKey={"name"}
+                      />
+                    </Item>
+                    <Item>
+                      <Input
+                        value={this.state.pedidodetalle.cantidad}
+                        placeholder="Cantidad" keyboardType="number-pad"
+                        onChangeText={ (item) => this.setState({
+                          pedidodetalle: {
+                            ...this.state.pedidodetalle,
+                            cantidad: item
+                          }
+                      }) }/>
+                    </Item>
+                    <Button block onPress={this.GuardarDetallePedido}>
+                    { !this.state.isEdit ?
+                      <Text>Agregar</Text>
+                      :
+                      <Text>Editar</Text>
+                    }
+                    </Button>
+                  </Form>
+                  {this.state.modalVisible ? <Toast ref={this.myRef} />: null }     
+              
+          </Modal>     
+          {/* <Modal
             animationType = {"slide"}
             transparent={true}
             visible = {this.state.modalVisible}
@@ -471,7 +559,7 @@ export default class Register extends React.Component {
               </Card>
             </Form>
             <Toast ref={this.myRef} />
-          </Modal>
+          </Modal> */}
           <Content>
           <List>
             { this.state.pedidodetalles.map(item =>(
@@ -500,6 +588,20 @@ export default class Register extends React.Component {
 }
 
 const styles = StyleSheet.create({
+  modalContent: {
+    backgroundColor: "white",
+    padding: 10,
+  },
+  closeButton: {
+    //width: 40,
+    //padding: 5,
+    justifyContent: 'center',
+  },
+  closeButtonText: {
+      fontSize: 30,
+      fontWeight: 'bold',
+      textAlign: 'center',
+  },
   modal: {
     flex: 1,
     alignItems: "center",
@@ -529,7 +631,7 @@ const styles = StyleSheet.create({
   },
 
   buttonRight: {
-    //alignSelf: 'flex-end',
+    alignSelf: 'flex-end',
     //position: 'absolute',
   },
 
@@ -537,7 +639,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     alignSelf: 'center',
   },
-
 
   autocompleteContainer: {
     flex: 1,
@@ -548,83 +649,10 @@ const styles = StyleSheet.create({
     zIndex: 1
   },
 
-  //prueba
-
   container: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center"
   },
-  itemSeparatorStyle:{
-    height: 1,
-    width: "90%",
-    alignSelf: "center",
-    backgroundColor: "#D3D3D3"
-  },
-  searchBarContainerStyle: {
-    marginBottom: 10,
-    flexDirection: "row",
-    height: 40,
-    shadowOpacity: 1.0,
-    shadowRadius: 5,
-    shadowOffset: {
-      width: 1,
-      height: 1
-    },
-    backgroundColor: "rgba(255,255,255,1)",
-    shadowColor: "#d3d3d3",
-    borderRadius: 10,
-    elevation: 3,
-    marginLeft: 10,
-    marginRight: 10
-  },
-
-  selectLabelTextStyle: {
-    color: "#000",
-    textAlign: "left",
-    width: "99%",
-    padding: 10,
-    flexDirection: "row"
-  },
-  placeHolderTextStyle: {
-    color: "#D3D3D3",
-    padding: 10,
-    textAlign: "left",
-    width: "99%",
-    flexDirection: "row"
-  },
-  dropDownImageStyle: {
-    marginLeft: 10,
-    width: 10,
-    height: 10,
-    alignSelf: "center"
-  },
-  listTextViewStyle: {
-    color: "#000",
-    marginVertical: 10,
-    flex: 0.9,
-    marginLeft: 20,
-    marginHorizontal: 10,
-    textAlign: "left"
-  },
-  pickerStyle: {
-    marginLeft: 18,
-    elevation:3,
-    paddingRight: 25,
-    marginRight: 10,
-    marginBottom: 2,
-    shadowOpacity: 1.0,
-    shadowOffset: {
-      width: 1,
-      height: 1
-    },
-    borderWidth:1,
-    shadowRadius: 10,
-    backgroundColor: "rgba(255,255,255,1)",
-    shadowColor: "#d3d3d3",
-    borderRadius: 5,
-    flexDirection: "row"
-  }
-
 
 });

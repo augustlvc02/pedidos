@@ -1,41 +1,16 @@
 import React, {useState} from 'react';
 
 import AppLoading from 'expo-app-loading';
-import { Container,Header,Content,Form,Item,Input,Text,Left,Button,
-Icon, Body,Title,Right, View, Label, Picker, List, ListItem,Card,CardItem, Toast, Root} from 'native-base';
+import { Container,Content,Form,Item,Input,Text,Button,
+Icon, Body,Right, Picker, List, ListItem,Card,CardItem} from 'native-base';
 import * as Font from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import { Alert, StyleSheet, ImageBackground, Modal, ScrollView} from 'react-native';
+import { Alert, StyleSheet, Modal} from 'react-native';
 import DatePicker from 'react-native-datepicker';
-import RNPicker from 'rn-modal-picker';
 import Cabecera from './Cabecera';
 import LookupModal from 'react-native-lookup-modal';
-
-let users = [
-  {
-      id: 1,
-      name: 'Brit Renfield',
-      tel: '542-866-4301',
-      email: 'brenfield0@gmail.com',
-      country: 'Russia'
-  },
-  {
-      id: 2,
-      name: 'Alfonse Tesche',
-      tel: '436-643-1234',
-      email: 'atesche1@hotmail.com',
-      country: 'Indonesia'
-  },
-  {
-      id: 3,
-      name: 'Chandler Follett',
-      tel: '682-740-8794',
-      email: 'cfollett2@boston.com',
-      country: 'Greece'
-  }
-];
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Toast from 'react-native-toast-message';
 
 export default class Register extends React.Component {
   constructor(props) {
@@ -43,8 +18,8 @@ export default class Register extends React.Component {
     this.state = {
       titulo: "Register",
       isReady: false,
-      sucursalid_FK: 0,
-      proveedorid_FK: 0,
+      //sucursalid_FK: 0,
+      //proveedorid_FK: 0,
       fecha: '',
       estado:'' ,
       errorMessage: '',
@@ -52,31 +27,48 @@ export default class Register extends React.Component {
       apellidoMaterno: '',
       apellidoPaterno: '',
       nombres: '',
-      proveedores: [],
-      productos: [],
+      
+      
       modalVisible: false,
-
-      productoid_FK: 0,
-      cantidad: 0,
       placeHolderTextProdcuto: "Seleccionar Producto",
       placeHolderTextProveedor: "Seleccionar Proveedor",
-      selectedText: "",
-      selectedTextProveedor: "",
       isEdit: false,
       position: 0,
 
-      pedidodetalle: [
-        /*
-        {
-          nombre_producto: 0,
-          productoid_FK: 0,
-          cantidad: 0
+      productos: [],
+      proveedores: [],
+
+      pedidodetalle: {
+        'cantidad': 0,
+        producto:{
+          'productoid_FK': 0
+        }       
+      },
+
+      pedidodetalles: [],
+
+      pedido: {
+        proveedor:{
+          'proveedorid': 0
         }
-        */
-      ],
-      user:'',
-    };  
+      },
+
+      usuario: {
+        'sucursalid_FK': 0
+      },
+    };
+    this.myRef = React.createRef();    
   }
+
+  obtenerSoloUsuario = async() => {
+    try{
+      const usuario = await AsyncStorage.getItem('sesion_usuario');
+      this.setState({ usuario: JSON.parse(usuario) });
+    } catch (e) {
+      //console.log(e);
+    }
+  }
+
 
   ListarProveedor = async() =>{
     try{
@@ -112,56 +104,60 @@ export default class Register extends React.Component {
     }
   }
 
-  mostrarToast(mensaje) {
-    //oculta spinner y muestra toast
-    //this.setState({showSpinner: false});
-    Toast.show({
-      text: mensaje,
-      buttonText: "Ok",
-      duration: 3000
-    });
- }
+  mostrarToast(mensaje,modal,type) {
+    if(modal)
+    {
+      this.myRef.current.show({
+        text1: mensaje,
+        position: 'bottom',
+        type: type,
+        visibilityTime: 500,
+      });
+    }
+    else
+    {
+      Toast.show({
+        text1: mensaje,
+        position: 'bottom',
+        type: type,
+        visibilityTime: 500,
+      });
+    }
+  }
   
   GuardarRegistroPedidoDetalle = async() =>{
-    const {sucursalid_FK} = this.state;
-    const {proveedorid_FK} = this.state;
+    //const {sucursalid_FK} = this.state;
+    const {usuario} = this.state;
+    const {pedido} = this.state;
     const {fecha} = this.state;
     const {estado} = this.state;
-    const {pedidodetalle} = this.state;
-    console.log("pedidosdetalle:",pedidodetalle);
+    const {pedidodetalles} = this.state;
+    const proveedor = pedido.proveedor;
     /*
-    const detalleLenght = this.state.pedidodetalle.length;
+    const detalleLenght = this.state.pedidodetalles.length;
     console.log("detalleLenght:",detalleLenght);
     */
+    console.log('Usuario::',usuario);
+
     let mensaje = '';
+    let type = 'error';
     let seguardo=false;
     const fechaLenght=fecha.length;
     const estadoLenght=estado.length;
-    const detalleLenght = pedidodetalle.length;
+    const detalleLenght = pedidodetalles.length;
 
-    if( sucursalid_FK==0 || proveedorid_FK==0 || fechaLenght==0 || estadoLenght==0 || detalleLenght==0 ){
+    if( usuario.sucursalid_FK==0 || proveedor.proveedorid==0 || fechaLenght==0 || estadoLenght==0 || detalleLenght==0 ){
       if( detalleLenght==0) mensaje = "Detalle no puede estar vacio";
-      else if( sucursalid_FK==0) mensaje = "Sucursal no puede estar vacia";
-      else if( proveedorid_FK==0) mensaje = "Proveedor no puede estar vacio";
+      else if( usuario.sucursalid_FK==0) mensaje = "Sucursal no puede estar vacia";
+      else if( proveedor.proveedorid==0) mensaje = "Proveedor no puede estar vacio";
       else if( fechaLenght=='') mensaje = "Fecha no puede estar vacia";
       else if( estadoLenght=='') mensaje = "Estado no puede estar vacio";
       console.log('MENSAJE',mensaje);
-      this.mostrarToast(mensaje);
     }
     else{
       try{
-      const jason = JSON.stringify({
-          "sucursalid_FK": sucursalid_FK,
-          "proveedorid_FK": proveedorid_FK,
-          "fecha": fecha,
-          "estado": estado,
-          "detalles": pedidodetalle
-      });
-      console.log(jason);
-      /*
         //const Url = "https://tesisanemia.000webhostapp.com/TesisAnemia2/JSonInsertProductoPOST.php";
         const Url = "https://project-code-dev.herokuapp.com/api/v1/pedido";
-
         const response = await fetch(Url,{
           method:'POST',
           headers:{
@@ -169,27 +165,30 @@ export default class Register extends React.Component {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-              "sucursalid_FK": sucursalid_FK,
-              "proveedorid_FK": proveedorid_FK,
-              "fecha": fecha,
-              "estado": estado,
-              "detalles": pedidodetalle
+            "sucursalid_FK": usuario.sucursalid_FK,
+            "proveedorid_FK": proveedor.proveedorid,
+            "fecha": fecha,
+            "estado": estado,
+            "detalles": pedidodetalles.map((pedidodetalle)=>({
+              productoid_FK: pedidodetalle.producto.productoid_FK, 
+              cantidad: pedidodetalle.cantidad
+            }))
           })
         });
-
         const data = await response.json();
         console.log(data);
         if(data.message){
+          type = 'success';
           mensaje = data.message;
         }else{
           mensaje = 'No registró';
         }
-      */
       } catch (e) {
         console.log(e);
         mensaje = "Error:".e;
       }
     }
+    this.mostrarToast(mensaje,false,type);
     //console.log('MENSAJE:',mensaje);
     //this.mostrarToast(mensaje);
     if(seguardo){
@@ -197,71 +196,71 @@ export default class Register extends React.Component {
   }
 
   GuardarDetallePedido = () =>{
-    const {productoid_FK} = this.state;
-    const {cantidad} = this.state;
-    const {selectedText} = this.state;
+    const {pedidodetalles} = this.state;
+    const {pedidodetalle} = this.state;
+    //const {producto} = this.state.pedidodetalle;
     const {isEdit} = this.state;
     const {position} = this.state;
-    const {pedidodetalle} = this.state;
+    const producto = pedidodetalle.producto;
 
-    const cantidadLenght = cantidad.length;
+    //console.log('PED. DETALLES:',pedidodetalles);
+    console.log('PED. DETALLE:',pedidodetalle);
+    //console.log('PRODUCTO:',producto);
+
+    const cantidadLenght = pedidodetalle.cantidad.length;
     let mensaje = '';
+    let type = 'error';
     let repetido = false;
     let repetidoValid = false;
-  
-    // si es editar y el producto a editar se mantiene no validar repetido dentro de lista
-    if(isEdit && pedidodetalle[position].productoid_FK == productoid_FK) repetidoValid=true;
+    
+    // si es editar y el pedidodetalle a editar se mantiene no validar repetido dentro de lista
+    if(isEdit && pedidodetalles[position].producto.productoid_FK == producto.productoid_FK) repetidoValid=true;
 
     // si la validacion es false consideran elementos de la lista
     if(!repetidoValid){
       //console.log('entro aqui');
-      for (const producto in pedidodetalle) {
+      for (const peddet in pedidodetalles) {
         // si el producto se encuentra ya registrado manda repetido
-        if(pedidodetalle[producto].productoid_FK == productoid_FK) repetido=true;
+        if(pedidodetalles[peddet].producto.productoid_FK == producto.productoid_FK) repetido=true;
       }
     }
 
-    if( productoid_FK==0 || cantidad==0 || cantidadLenght==0 || repetido)
+    if( producto.productoid_FK==0 || pedidodetalle.cantidad==0 || cantidadLenght==0 || repetido)
     {
-      if(productoid_FK==0) mensaje='Producto no puede estar vacio';
-      else if(cantidad==0 || cantidadLenght==0) mensaje='Cantidad no puede estar vacia o igual a 0';
+      if(producto.productoid_FK==0) mensaje='Producto no puede estar vacio';
+      else if(pedidodetalle.cantidad==0 || cantidadLenght==0) mensaje='Cantidad no puede estar vacia o igual a 0';
       else if(repetido) mensaje='Producto ya se encuentra agregado en el detalle';
-      this.mostrarToast(mensaje);
+      this.mostrarToast(mensaje,true,type);
     }
     else
     {
-      //console.log("productoid_FK:",productoid_FK);
-      //console.log("pedidosantes:",this.state.pedidodetalle);
-      const producto = {
-        'nombre_producto': selectedText,
-        'productoid_FK': productoid_FK,
-        'cantidad': cantidad
-      };
       if(isEdit){
         console.log("edito");
-        //guardar el producto en la posicion
-        this.state.pedidodetalle[position] = producto;
+        //guardar el pedidodetalle en la posicion
+        this.state.pedidodetalles[position] = pedidodetalle;
       }
       else{
         console.log("agrego");
-        //agregar producto en arreglo
-        this.state.pedidodetalle.push(producto);
+        //agregar pedido detalle en arreglo
+        this.state.pedidodetalles.push(pedidodetalle);
       }
-      //console.log("pedidos:",this.state.pedidodetalle);
+      //cierra el modal
       this.toggleModal(!this.state.modalVisible);
     }
-  
   }
 
   toggleModal(visible) {
     //carge los productos
     this.ListarProducto();
     this.setState({ modalVisible: visible,
-                    cantidad: '',
-                    selectedText: '',
-                    productoid_FK: 0,
                     isEdit: false,
-                    position: 0
+                    position: 0,
+                    pedidodetalle: {
+                      'cantidad': 0,
+                      producto:{
+                        'productoid_FK': 0
+                      }       
+                    },
     });
   }
 
@@ -271,22 +270,18 @@ export default class Register extends React.Component {
       Roboto_medium: require('native-base/Fonts/Roboto_medium.ttf'),
       ...Ionicons.font,
     });
+    this.obtenerSoloUsuario();
+    //  obtenerSoloUsuario().then((value) => {
+    //    const user = value;
+    //    console.log('us:',user)
+    //  })
+
+    //console.log("US:",user);
+
     this.setState({ isReady: true });
 
+    
     this.ListarProveedor();
-    //this.ListarProducto();
-    //console.log("Proveedor:",this.state.proveedores);
-    //console.log("id:", this.state.sucursalid_FK);
-
-    //producto prueba
-    /*
-    const producto = {
-      'nombre_producto': 'AAAAAAAAAAAAAAAAA',
-      'productoid_FK': 1,
-      'cantidad': 4
-    };
-    this.state.pedidodetalle.push(producto);
-    */
   }
   
   // picker proveedores
@@ -304,15 +299,9 @@ export default class Register extends React.Component {
        )))
   }
 
-  /*
-  _selectedValue(index, item) {
-    this.setState({ selectedText: item.nombre_producto});
-  }
-  */
   EditarProductoList(item) {
     //obtener la posicion
-    var position = this.state.pedidodetalle.indexOf(item);
-    
+    let position = this.state.pedidodetalles.indexOf(item);
     //console.log("click");
     //abri el modal
     this.toggleModal(!this.state.modalVisible);
@@ -320,11 +309,16 @@ export default class Register extends React.Component {
     //setear el objeto
     this.setState({
       isEdit: true,
-      cantidad: item.cantidad,
-      selectedText: item.nombre_producto,
-      productoid_FK: item.productoid_FK,
-      position: position
-      }); 
+      position: position,
+      pedidodetalle: {
+        'cantidad': item.cantidad,
+        producto:{
+          'name': item.producto.nombre_producto,
+          'nombre_producto': item.producto.nombre_producto,
+          'productoid_FK': item.producto.productoid_FK
+        }
+      }
+    }); 
 
   }
 
@@ -337,31 +331,17 @@ export default class Register extends React.Component {
         {text: 'Cancelar', onPress: () => {return null}},
         {text: 'Eliminar', onPress: () => {
           //obtener la posicion
-          var pedidodetallenuevo = this.state.pedidodetalle;
-          var position = this.state.pedidodetalle.indexOf(item);
-          this.state.pedidodetalle.splice(position,1);
-          this.setState({pedidodetalle: pedidodetallenuevo});    
+          let pedidodetallenuevo = this.state.pedidodetalles;
+          let position = this.state.pedidodetalles.indexOf(item);
+          this.state.pedidodetalles.splice(position,1);
+          this.setState({pedidodetalles: pedidodetallenuevo});    
         }},
       ],
       { cancelable: false }
     )
 
   }
-
-  _selectedValue(index, item) {
-    this.setState({ selectedText: item.nombre_producto, productoid_FK: item.productoid_FK });
-    //console.log("seleccionado:",productoid);
-   // console.log("id:",this.state.productoid);
-  }
-
-  _selectedValueProv(index, item) {
-    this.setState({ selectedTextProveedor: item.razon_social, proveedorid_FK: item.proveedorid });
-    //console.log("seleccionado:",productoid);
-   // console.log("id:",this.state.productoid);
-   //<Picker.Item label={item.razon_social} key={item.ruc} value={item.proveedorid}  />
-  }
-
-  render() {
+  render() { 
     
     if (!this.state.isReady) {
       return <AppLoading />;
@@ -369,12 +349,10 @@ export default class Register extends React.Component {
     
     return (
       <Container>
-
         <Cabecera {...this.props} titulo={this.state.titulo}/>
-        
         <Content padder contentContainerStyle={{flex:1}}>
           <Form>
-            <Item>
+            {/* <Item>
                 <Picker
                   mode="dropdown"
                   style={{ height: 50, width: 100 }}
@@ -388,18 +366,8 @@ export default class Register extends React.Component {
                   <Picker.Item label="Sucursal 3" value={3} />
                   <Picker.Item label="Sucursal 4" value={4} />
                 </Picker>
-            </Item>
-            {/* <Item> */}
-              {/* <Picker
-                mode="dropdown"
-                style={{ height: 50, width: 100 }}
-                //style={{ marginRight: 80 }}
-                selectedValue={this.state.proveedorid_FK}
-                onValueChange={ (value) => ( this.setState({proveedorid_FK : value}) )}>
-                { this.proveedoresList() }
-              </Picker> */}
-              <Item>
-              {/* style={{ height: 50, width: 100 }} */}
+            </Item> */}
+            <Item>
               <LookupModal
                   selectButtonTextStyle={
                     {
@@ -415,50 +383,20 @@ export default class Register extends React.Component {
                       flexDirection: 'row' 
                     }
                   }
-                  //{{ fontSize: 15}}
-
-                  
                   itemTextStyle={{ fontSize: 15}}
-                  
-                  /*
-                  {{ width: "100%",
-                  //backgroundColor: '#5A9BD4',
-                  flexWrap: 'wrap',
-                  height: 40
-                  }}*/
                   data={this.state.proveedores}
-                  value={this.state.selectedTextProveedor}
+                  value={this.state.pedido.proveedor}
                   selectText={this.state.placeHolderTextProveedor}
                   placeholder={"Buscar"}
-                  onSelect={ (item) => ( this.setState({selectedTextProveedor : item,
-                                                        proveedorid_FK: item.proveedorid}) )}
+                  onSelect={ (item) => ( this.setState({
+                    pedido: {
+                      ...this.state.pedido,
+                      proveedor: item
+                    }
+                  }) )}
                   displayKey={"name"}
               />
-              </Item>
-              {/* <RNPicker
-                  dataSource={this.state.proveedores}
-                  dummyDataSource={this.state.proveedores}
-                  defaultValue={this.state.selectedTextProveedor}
-                  pickerTitle={this.state.placeHolderTextProveedor}
-                  showSearchBar={true}
-                  disablePicker={false}
-                  changeAnimation={"none"}
-                  searchBarPlaceHolder={"Buscar....."}
-                  showPickerTitle={true}
-                  searchBarContainerStyle={this.props.searchBarContainerStyle}
-                  pickerStyle={styles.pickerStyle}
-                  itemSeparatorStyle={styles.itemSeparatorStyle}
-                  pickerItemTextStyle={styles.listTextViewStyle}
-                  selectedLabel={this.state.selectedTextProveedor}
-                  placeHolderLabel={this.state.placeHolderTextProveedor}
-                  selectLabelTextStyle={styles.selectLabelTextStyle}
-                  placeHolderTextStyle={styles.placeHolderTextStyle}
-                  dropDownImageStyle={styles.dropDownImageStyle}
-                  //dropDownImage={require("./res/ic_drop_down.png")}
-                  //selectedValue={(index, item) => this._selectedValue(index, item)}
-                  selectedValue={(index, item) => this._selectedValueProv(index, item)}
-                /> */}
-            {/* </Item> */}
+            </Item>
             <Item>
               <DatePicker
                 style={{width: 200}}
@@ -478,85 +416,90 @@ export default class Register extends React.Component {
                   dateInput: {
                     marginLeft: 36
                   }
-                  // ... You can check the source to find the other keys.
                 }}
                 onDateChange={(date) => {this.setState({fecha: date})}}/>
             </Item>
             <Item>
               <Input placeholder="Estado" onChangeText={estado => this.setState({estado})}/>
             </Item>
-
             <Button primary style = {styles.buttonTop} onPress = {() => {this.toggleModal(true)}}>
               <Icon name='add-outline' />
             </Button>
-
-          </Form>
-          {/*modal*/}        
+          </Form>      
           <Modal
             animationType = {"slide"}
-            //transparent = {false}
             transparent={true}
             visible = {this.state.modalVisible}
             onRequestClose = {() => { console.log("Modal has been closed.") } }> 
-            {/* <Root> */}
             <Form style= {styles.modal}>
-            <Card style= {styles.modal2}>
-            <CardItem >
-            <Form>
-              <Button style = {styles.buttonBot} onPress = {() => { this.toggleModal(!this.state.modalVisible)}}>
-                <Icon name='md-arrow-undo' />
-              </Button>
-                {/* <RNPicker
-                  dataSource={this.state.productos}
-                  dummyDataSource={this.state.productos}
-                  defaultValue={this.state.selectedText}
-                  pickerTitle={this.state.placeHolderTextProdcuto}
-                  showSearchBar={true}
-                  disablePicker={false}
-                  changeAnimation={"none"}
-                  searchBarPlaceHolder={"Buscar....."}
-                  showPickerTitle={true}
-                  searchBarContainerStyle={this.props.searchBarContainerStyle}
-                  pickerStyle={styles.pickerStyle}
-                  itemSeparatorStyle={styles.itemSeparatorStyle}
-                  pickerItemTextStyle={styles.listTextViewStyle}
-                  selectedLabel={this.state.selectedText}
-                  placeHolderLabel={this.state.placeHolderTextProdcuto}
-                  selectLabelTextStyle={styles.selectLabelTextStyle}
-                  placeHolderTextStyle={styles.placeHolderTextStyle}
-                  dropDownImageStyle={styles.dropDownImageStyle}
-                  //dropDownImage={require("./res/ic_drop_down.png")}
-                  selectedValue={(index, item) => this._selectedValue(index, item)}
-                /> */}
-                <Item>
-                  
-                </Item>
-                <Item>
-                  <Input 
-                  value={String(this.state.cantidad)}
-                  placeholder="Cantidad" keyboardType="number-pad" onChangeText={cantidad => this.setState({cantidad})}/>
-                </Item>
-              <Button block onPress={this.GuardarDetallePedido}>
-              { !this.state.isEdit ?
-                <Text>Agregar</Text>
-                :
-                <Text>Editar</Text>
-              }
-              </Button>
+              <Card style= {styles.modal2}>
+                <CardItem >
+                  <Form>
+                    <Button style = {styles.buttonBot} onPress = {() => { this.toggleModal(!this.state.modalVisible)}}>
+                      <Icon name='md-arrow-undo' />
+                    </Button>
+                      <Item>
+                      <LookupModal
+                        selectButtonTextStyle={
+                          {
+                            fontSize: 15,
+                            flex:1,
+                            textAlign: 'left'
+                          }
+                        }
+                        selectButtonStyle={
+                          {
+                            justifyContent: 'space-between',
+                            flexWrap: 'wrap',
+                            flexDirection: 'row' 
+                          }
+                        }
+                        itemTextStyle={{ fontSize: 15}}
+                        data={this.state.productos}
+                        value={this.state.pedidodetalle.producto}
+                        selectText={this.state.placeHolderTextProdcuto}
+                        placeholder={"Buscar"}
+                        onSelect={ (item) => this.setState({
+                          pedidodetalle: {
+                            ...this.state.pedidodetalle,
+                            producto: item
+                          }
+                        })}
+                        displayKey={"name"}
+                      />
+                      </Item>
+                      <Item>
+                        <Input
+                        value={this.state.pedidodetalle.cantidad}
+                        placeholder="Cantidad" keyboardType="number-pad"
+                        onChangeText={ (item) => this.setState({
+                          pedidodetalle: {
+                            ...this.state.pedidodetalle,
+                            cantidad: item
+                          }
+                        }) }/>
+                      </Item>
+                    <Button block onPress={this.GuardarDetallePedido}>
+                    { !this.state.isEdit ?
+                      <Text>Agregar</Text>
+                      :
+                      <Text>Editar</Text>
+                    }
+                    </Button>
+                  </Form>
+                </CardItem>
+              </Card>
             </Form>
-            </CardItem>
-            </Card>
-            </Form>
-            {/* </Root> */}
+            <Toast ref={this.myRef} />
           </Modal>
           <Content>
           <List>
-            { this.state.pedidodetalle.map(item =>(
-            <ListItem key={item.productoid_FK} onPress={() => this.EditarProductoList(item)}> 
+            { this.state.pedidodetalles.map(item =>(
+            <ListItem key={item.producto.productoid_FK} onPress={() => this.EditarProductoList(item)}> 
               <Body>
-                <Text>Nombre: {item.nombre_producto}</Text>
+                <Text>Nombre: {item.producto.nombre_producto}</Text>
                 <Text note >Cantidad: {item.cantidad}</Text>
-                <Text note>Id: {item.productoid_FK}</Text>
+                <Text note>Id: {item.producto.productoid_FK}</Text>
               </Body>
               <Right>
                 <Button transparent style = {styles.buttonRight} onPress={() => this.EliminarProductoList(item)}>
@@ -615,7 +558,6 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
 
-
   autocompleteContainer: {
     flex: 1,
     left: 0,
@@ -625,83 +567,10 @@ const styles = StyleSheet.create({
     zIndex: 1
   },
 
-  //prueba
-
   container: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center"
   },
-  itemSeparatorStyle:{
-    height: 1,
-    width: "90%",
-    alignSelf: "center",
-    backgroundColor: "#D3D3D3"
-  },
-  searchBarContainerStyle: {
-    marginBottom: 10,
-    flexDirection: "row",
-    height: 40,
-    shadowOpacity: 1.0,
-    shadowRadius: 5,
-    shadowOffset: {
-      width: 1,
-      height: 1
-    },
-    backgroundColor: "rgba(255,255,255,1)",
-    shadowColor: "#d3d3d3",
-    borderRadius: 10,
-    elevation: 3,
-    marginLeft: 10,
-    marginRight: 10
-  },
-
-  selectLabelTextStyle: {
-    color: "#000",
-    textAlign: "left",
-    width: "99%",
-    padding: 10,
-    flexDirection: "row"
-  },
-  placeHolderTextStyle: {
-    color: "#D3D3D3",
-    padding: 10,
-    textAlign: "left",
-    width: "99%",
-    flexDirection: "row"
-  },
-  dropDownImageStyle: {
-    marginLeft: 10,
-    width: 10,
-    height: 10,
-    alignSelf: "center"
-  },
-  listTextViewStyle: {
-    color: "#000",
-    marginVertical: 10,
-    flex: 0.9,
-    marginLeft: 20,
-    marginHorizontal: 10,
-    textAlign: "left"
-  },
-  pickerStyle: {
-    marginLeft: 18,
-    elevation:3,
-    paddingRight: 25,
-    marginRight: 10,
-    marginBottom: 2,
-    shadowOpacity: 1.0,
-    shadowOffset: {
-      width: 1,
-      height: 1
-    },
-    borderWidth:1,
-    shadowRadius: 10,
-    backgroundColor: "rgba(255,255,255,1)",
-    shadowColor: "#d3d3d3",
-    borderRadius: 5,
-    flexDirection: "row"
-  }
-
 
 });

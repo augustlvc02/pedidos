@@ -18,11 +18,12 @@ export default class Login extends React.Component {
       showSpinner: false,
       showPass: false,
     };
+    //console.log('LOGIN:',props);
     //this.loginClick = this.loginClick.bind(this);
   }
   //const [hidePass, setHidePass] = useState(true);
 
-  mostrarToast(mensaje) {
+  mostrarToast(mensaje,type) {
     //oculta spinner y muestra toast
     /*
     this.setState({showSpinner: false});
@@ -36,7 +37,7 @@ export default class Login extends React.Component {
     Toast.show({
       text1: mensaje,
       position: 'bottom',
-      type: 'error',
+      type: type,
       visibilityTime: 500,
     });
   }
@@ -58,6 +59,7 @@ export default class Login extends React.Component {
     const {username} = this.state;
     const {password} = this.state;
     let mensaje = '';
+    let type = 'error';
     let selogeo=false;
     let usuario=null;
     const usernameLenght=username.length;
@@ -86,13 +88,14 @@ export default class Login extends React.Component {
         });
         // const usuario = await response.json();
         usuario = await response.json();
-        console.log(usuario);
+        console.log('USER:',usuario);
         const exist = !usuario.message ? true : false;
         
         if(exist){
           const { apellido_materno, apellido_paterno, nombres, tipousuario } = usuario;
           if(tipousuario==='A'){
             selogeo=true;
+            type='success';
             mensaje = "Bienvenido "+nombres+" "+apellido_paterno+" "+apellido_materno;
           } else mensaje = "No es administrador";
         } else mensaje = "Usuario o Password invalidos";
@@ -104,7 +107,7 @@ export default class Login extends React.Component {
       this.setState({username:"", password:""});
     }
     // muestra el toast
-    this.mostrarToast(mensaje);
+    this.mostrarToast(mensaje,type);
     // guarda el usuario y state
     if(selogeo){
       this.props.route.params.guardarUsuario(usuario);
@@ -141,7 +144,7 @@ export default class Login extends React.Component {
                 secureTextEntry={this.state.showPass ? false : true}
                 onChangeText={password => this.setState({password})}/>
               <Icon 
-                active name={this.state.showPass ? 'eye-outline' : 'eye-off-outline'}
+                active name={this.state.showPass ? 'eye-off-outline' : 'eye-outline'}
                 onPress={() => this.setState({ showPass: !this.state.showPass })}
               />
             </Item>
