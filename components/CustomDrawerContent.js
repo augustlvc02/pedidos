@@ -4,8 +4,8 @@ import { Container, Content, List, ListItem, Left, Button, Icon, Body, Text, Rig
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 const routes = [
-  { titulo:'Register', icono:'add' },
-  { titulo:'ListarPedidos', icono:'list' }
+  { titulo:'Register', icono:'add', key: 1 },
+  { titulo:'ListarPedidos', icono:'list', key: 2 }
 ];
 export default function CustomDrawerContent(props) {
  return (
@@ -24,7 +24,7 @@ export default function CustomDrawerContent(props) {
       </Image>
       <List>
       { routes.map(data =>(
-        <ListItem icon
+        <ListItem key={data.key} icon
           onPress={() => props.navigation.navigate(data.titulo)}>
           <Left>
             <Button style={{ backgroundColor: "#007AFF" }}>
@@ -39,7 +39,7 @@ export default function CustomDrawerContent(props) {
           </Right>
         </ListItem>
       ))}
-      <ListItem icon
+      <ListItem key={0} icon
           onPress={props.setLoggedOut}>
           <Left>
             <Button style={{ backgroundColor: "#007AFF" }}>

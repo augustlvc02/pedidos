@@ -32,6 +32,7 @@ export default class Register extends React.Component {
       
       
       modalVisible: false,
+      modalToast: false,
       placeHolderTextProdcuto: "Seleccionar Producto",
       placeHolderTextProveedor: "Seleccionar Proveedor",
       isEdit: false,
@@ -41,7 +42,7 @@ export default class Register extends React.Component {
       proveedores: [],
 
       pedidodetalle: {
-        'cantidad': 0,
+        'cantidad': '',
         producto:{
           'productoid_FK': 0
         }       
@@ -232,6 +233,7 @@ export default class Register extends React.Component {
       if(producto.productoid_FK==0) mensaje='Producto no puede estar vacio';
       else if(pedidodetalle.cantidad==0 || cantidadLenght==0) mensaje='Cantidad no puede estar vacia o igual a 0';
       else if(repetido) mensaje='Producto ya se encuentra agregado en el detalle';
+      this.setState({modalToast: true});
       this.mostrarToast(mensaje,true,type);
     }
     else
@@ -255,10 +257,11 @@ export default class Register extends React.Component {
     //carge los productos cuando es visible
     if(visible) this.ListarProducto();
     this.setState({ modalVisible: visible,
+                    modalToast: false,
                     isEdit: false,
                     position: 0,
                     pedidodetalle: {
-                      'cantidad': 0,
+                      'cantidad': '',
                       producto:{
                         'productoid_FK': 0
                       }       
@@ -279,12 +282,13 @@ export default class Register extends React.Component {
     //  })
 
     //console.log("US:",user);
-
-    this.setState({ isReady: true });
-
-    
     this.ListarProveedor();
+    this.setState({ isReady: true });
   }
+
+  // componentWillUnmount(){
+  //   this._isMounted = false;
+  // }
   
   // picker proveedores
   proveedoresList = () =>{
@@ -342,7 +346,7 @@ export default class Register extends React.Component {
       { cancelable: false }
     )
   }
-
+  
   render() { 
     
     if (!this.state.isReady) {
@@ -354,37 +358,18 @@ export default class Register extends React.Component {
         <Cabecera {...this.props} titulo={this.state.titulo}/>
         <Content padder contentContainerStyle={{flex:1}}>
           <Form>
-            {/* <Item>
-                <Picker
-                  mode="dropdown"
-                  style={{ height: 50, width: 100 }}
-                  selectedValue={this.state.sucursalid_FK}
-                  onValueChange={(item, itemvalue) => 
-                    this.setState({sucursalid_FK: itemvalue})
-                  }>
-                  <Picker.Item label="Sucursal 0" value={0} />
-                  <Picker.Item label="Sucursal 1" value={1} />
-                  <Picker.Item label="Sucursal 2" value={2} />
-                  <Picker.Item label="Sucursal 3" value={3} />
-                  <Picker.Item label="Sucursal 4" value={4} />
-                </Picker>
-            </Item> */}
             <Item>
               <LookupModal
-                  selectButtonTextStyle={
-                    {
+                  selectButtonTextStyle={{
                       fontSize: 15,
                       flex:1,
                       textAlign: 'left'
-                    }
-                  }
-                  selectButtonStyle={
-                    {
+                  }}
+                  selectButtonStyle={{
                       justifyContent: 'space-between',
                       flexWrap: 'wrap',
                       flexDirection: 'row' 
-                    }
-                  }
+                  }}
                   itemTextStyle={{ fontSize: 15}}
                   data={this.state.proveedores}
                   value={this.state.pedido.proveedor}
@@ -427,16 +412,21 @@ export default class Register extends React.Component {
             <Button primary style = {styles.buttonTop} onPress = {() => {this.toggleModal(true)}}>
               <Icon name='add-outline' />
             </Button>
-          </Form> 
+          </Form>
+           
           <Modal
             isVisible={this.state.modalVisible}
             backdropTransitionOutTiming={0}
             animationIn={'zoomIn'}
             animationOut={'zoomOut'}
             style = {{  margin: 0 }}
-            onBackButtonPress={() => { this.setState({modalVisible: false}) }}>
-              
+            onBackButtonPress={() => { this.toggleModal(!this.state.modalVisible) }}>
+              <Toast
+              //validar que el toast no se vea variable state solo se activa al presionar boton
+              style = {{ opacity: this.state.modalToast ?  100 : 0 }} 
+              ref={this.myRef} />
                   <Form style={styles.modalContent}>
+                  
                     <Button dark transparent
                       style={styles.buttonRight}
                       onPress = {() => { this.toggleModal(!this.state.modalVisible) }}>
@@ -474,14 +464,24 @@ export default class Register extends React.Component {
                     </Item>
                     <Item>
                       <Input
-                        value={this.state.pedidodetalle.cantidad}
-                        placeholder="Cantidad" keyboardType="number-pad"
-                        onChangeText={ (item) => this.setState({
-                          pedidodetalle: {
-                            ...this.state.pedidodetalle,
-                            cantidad: item
+                        //value={this.state.pedidodetalle.cantidad ? String(this.state.pedidodetalle.cantidad) : null}
+                        value={String(this.state.pedidodetalle.cantidad)}
+                        //value={this.state.pedidodetalle.cantidad}
+                        placeholder="Cantidad" keyboardType="numeric"
+                        //onChangeText={this.handleInputChange}
+                        onChangeText={ (item) => {
+                          //solo si es un numero
+                          if (!isNaN(item)) {
+                            //console.log('NUMER:',item);
+                            this.setState({
+                              pedidodetalle: {
+                                ...this.state.pedidodetalle,
+                                cantidad: item
+                              }
+                            })
                           }
-                      }) }/>
+                        } }
+                      />
                     </Item>
                     <Button block onPress={this.GuardarDetallePedido}>
                     { !this.state.isEdit ?
@@ -491,7 +491,7 @@ export default class Register extends React.Component {
                     }
                     </Button>
                   </Form>
-                  {this.state.modalVisible ? <Toast ref={this.myRef} />: null }     
+                  {/* <Toast ref={this.myRef} />     */}
               
           </Modal>     
           {/* <Modal
@@ -591,6 +591,7 @@ const styles = StyleSheet.create({
   modalContent: {
     backgroundColor: "white",
     padding: 10,
+    margin: 20,
   },
   closeButton: {
     //width: 40,
