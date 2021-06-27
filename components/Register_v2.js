@@ -17,7 +17,7 @@ export default class Register extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      titulo: "Register",
+      titulo: "Register_v2",
       isReady: false,
       fecha: '',
       estado:'' ,
@@ -30,6 +30,8 @@ export default class Register extends React.Component {
 
       productos: [],
       proveedores: [],
+
+      isEditPedido: false,
 
       pedidodetalle: {
         'cantidad': '',
@@ -50,6 +52,8 @@ export default class Register extends React.Component {
         'sucursalid_FK': 0
       },
     };
+
+    
     this.myRef = React.createRef();    
   }
 
@@ -120,6 +124,10 @@ export default class Register extends React.Component {
     }
   }
   
+  EditarRegistroPedidoDetalle = async() =>{
+
+  }
+
   GuardarRegistroPedidoDetalle = async() =>{
     //const {sucursalid_FK} = this.state;
     const {usuario} = this.state;
@@ -128,6 +136,7 @@ export default class Register extends React.Component {
     const {estado} = this.state;
     const {pedidodetalles} = this.state;
     const proveedor = pedido.proveedor;
+    const {isEditPedido}= this.state;
     /*
     const detalleLenght = this.state.pedidodetalles.length;
     console.log("detalleLenght:",detalleLenght);
@@ -141,18 +150,6 @@ export default class Register extends React.Component {
     const estadoLenght=estado.length;
     const detalleLenght = pedidodetalles.length;
 
-    const ped = ({
-      "sucursalid_FK": usuario.sucursalid_FK,
-      "proveedorid_FK": proveedor.proveedorid,
-      "fecha": fecha,
-      "estado": estado,
-      "detalles": pedidodetalles.map((pedidodetalle)=>({
-        productoid: pedidodetalle.producto.productoid, 
-        cantidad: pedidodetalle.cantidad
-      }))
-    });
-    console.log("pedido",ped);
-
     if( usuario.sucursalid_FK==0 || proveedor.proveedorid==0 || fechaLenght==0 || estadoLenght==0 || detalleLenght==0 ){
       if( detalleLenght==0) mensaje = "Detalle no puede estar vacio";
       else if( usuario.sucursalid_FK==0) mensaje = "Sucursal no puede estar vacia";
@@ -162,6 +159,7 @@ export default class Register extends React.Component {
       console.log('MENSAJE',mensaje);
     }
     else{
+      if(!isEditPedido){
       try{
         //const Url = "https://tesisanemia.000webhostapp.com/TesisAnemia2/JSonInsertProductoPOST.php";
         const Url = "https://project-code-dev.herokuapp.com/api/v1/pedido";
@@ -193,6 +191,10 @@ export default class Register extends React.Component {
       } catch (e) {
         console.log(e);
         mensaje = "Error:".e;
+      }
+      }else{
+        mensaje = "EDITAR PEDIDO";
+        console.log("EDITAR PEDIDO");
       }
     }
     this.mostrarToast(mensaje,false,type);
@@ -288,6 +290,26 @@ export default class Register extends React.Component {
     //console.log("US:",user);
     this.ListarProveedor();
     this.setState({ isReady: true });
+    console.log('REGISTER IS EDIT:',this.props.route.params.isEditPedido);
+    console.log('AAAPEDIDO:',this.props.route.params.pedido);
+    console.log('AAADETALLES:',this.props.route.params.detalles);
+    if(this.props.route.params.isEditPedido!=null){
+      this.setState({ isEditPedido: this.props.route.params.isEditPedido,
+                      pedido: this.props.route.params.pedido,
+                      detalles: this.props.route.params.detalles,
+                      fecha: this.props.route.params.pedido.fecha,
+                      estado: this.props.route.params.pedido.estado,
+                      proveedor: this.props.route.params.pedido.proveedor,
+                      placeHolderTextProveedor: this.props.route.params.pedido.razon_ruc,
+                      pedidodetalles: this.props.route.params.detalles,
+
+      });
+      // console.log("pedido",this.state.pedido);
+      // console.log("detalles:",this.state.detalles);
+      // console.log("proveedor:",this.state.proveedor);
+      // console.log("pedido:",this.state.placeHolderTextProdcuto);
+    }
+    
   }
 
   EditarProductoList(item) {
@@ -342,6 +364,7 @@ export default class Register extends React.Component {
         <Cabecera {...this.props} titulo={this.state.titulo}/>
         <Content padder contentContainerStyle={{flex:1}}>
           <Form>
+            
             <Item>
               <LookupModal
                   selectButtonTextStyle={{
@@ -391,7 +414,9 @@ export default class Register extends React.Component {
                 onDateChange={(date) => {this.setState({fecha: date})}}/>
             </Item>
             <Item>
-              <Input placeholder="Estado" onChangeText={estado => this.setState({estado})}/>
+              <Input placeholder="Estado"
+              value={String(this.state.estado)}
+              onChangeText={estado => this.setState({estado})}/>
             </Item>
             <Button primary style = {styles.buttonTop} onPress = {() => {this.toggleModal(true)}}>
               <Icon name='add-outline' />
@@ -469,10 +494,11 @@ export default class Register extends React.Component {
                     </Item>
                     <Button block onPress={this.GuardarDetallePedido}>
                     { !this.state.isEdit ?
-                      <Text>Agregar</Text>
-                      :
-                      <Text>Editar</Text>
-                    }
+                        <Text>Agregar</Text>
+                        :
+                        <Text>Editar</Text>
+                    }  
+
                     </Button>
                   </Form>
                   {/* <Toast ref={this.myRef} />     */}
@@ -496,9 +522,17 @@ export default class Register extends React.Component {
             ))}
           </List>
           </Content >
-          <Button block onPress={this.GuardarRegistroPedidoDetalle}>
-              <Text>Registrar</Text>
-          </Button>
+
+          { this.state.isEditPedido ?
+            <Button block onPress={this.GuardarRegistroPedidoDetalle}>
+              <Text>Editar</Text>
+            </Button>
+          :
+            <Button block onPress={this.GuardarRegistroPedidoDetalle}>
+                <Text>Registrar</Text>
+            </Button>
+          }
+          
         </Content>
       </Container>
     );

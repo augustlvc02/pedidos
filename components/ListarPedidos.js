@@ -9,6 +9,7 @@ import { StyleSheet, ScrollView} from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Cabecera from './Cabecera';
+import Register_v2 from './Register_v2';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 //import Login from './components/Login';
 
@@ -35,6 +36,7 @@ export default class ListarPedidos extends React.Component {
       ] ,
 
       pedidos: [],
+      pedido: {},
       showSpinner: false,
     };
   }
@@ -48,27 +50,54 @@ export default class ListarPedidos extends React.Component {
     ]);
   }
   */
-
-  ListarPedidos = () =>{
-    this.setState({showSpinner: true});
-    const Url = "https://tesisanemia.000webhostapp.com/TesisAnemia2/JSonListPedido.php";
-
-    fetch(Url,{
-      method:'GET',
-      headers:{
-      'Accept':'application/json',
-      'Content-Type': 'application/json'
+  ObtenerPedido = async(pedidoid) =>{
+    try{
+      const Url = "https://tesisanemia.000webhostapp.com/TesisAnemia2/JSonListPedidoId.php?pedidoid="+pedidoid;
+      //const Url = "https://project-code-dev.herokuapp.com/api/v1/pedido";
+      const response = await fetch(Url,{
+        method:'GET',
+        headers:{
+          'Accept':'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+      const data = await response.json();
+      //console.log('OBTENER PED..',data);
+      this.setState({ pedido: data, showSpinner: false });
+      //, function() {
+      console.log('LISTAR',this.state.pedido);
+      const pedidonav = this.state.pedido.pedido;
+      const detallesnav = this.state.pedido.detalles;
+      console.log('PED NAV',pedidonav);
+      console.log('DETALLES NAV',detallesnav);
+      this.props.navigation.navigate('Register_v2',{
+        isEditPedido: true,
+        pedido: pedidonav,
+        detalles: detallesnav
+      });
+      //});
+    } catch (e) {
+      console.log(e);
     }
-    }).then((respuesta)=> respuesta.json())
-    .then((respuestaJson) => {
-      const data = respuestaJson;
-      this.setState({ pedidos: data.pedido });
-      this.setState({showSpinner: false});
-    })
-    .catch((error) => {
-    console.log(error);
-    })
-    
+  }
+
+  ListarPedidos = async() =>{
+    this.setState({showSpinner: true});
+    try{
+      const Url = "https://tesisanemia.000webhostapp.com/TesisAnemia2/JSonListPedido.php";
+      //const Url = "https://project-code-dev.herokuapp.com/api/v1/pedido";
+      const response = await fetch(Url,{
+        method:'GET',
+        headers:{
+          'Accept':'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+      const data = await response.json();
+      this.setState({ pedidos: data, showSpinner: false});
+    } catch (e) {
+      console.log(e);
+    }
   }
   
   async componentDidMount() {
@@ -82,8 +111,35 @@ export default class ListarPedidos extends React.Component {
     this.ListarPedidos();
   }
 
+  EditarPedidoList(item) {
+    //this.setState({showSpinner: true});
+    //obtener la posicion
+    //let position = this.state.pedidos.indexOf(item);
+    let pedidoid = item.pedidoid
+    console.log('PEDIDO ID:',pedidoid);
+    /*
+    const detalles = [
+      {
+        "cantidad": "5",
+        "producto": {
+          "nombre_producto": "SERVICIO DE VENTA",
+          "productoid": 8
+        }
+      }
+    ];
+    const pedido = {
+      "estado": "P",
+      "fecha": "2021-06-24",
+      "proveedor":{
+        'proveedorid': 2,
+        'razon_ruc': "RAMIREZ...."
+      },
+      "sucursalid_FK": 1,
+    };
+    */
+    this.ObtenerPedido(pedidoid);
 
-
+  }
 
   render() {
     //console.log
@@ -101,7 +157,7 @@ export default class ListarPedidos extends React.Component {
           {this.state.showSpinner ? <Spinner color='blue'/>: null }
           <List>
           { this.state.pedidos.map(item =>(
-            <ListItem key={item.pedidoid} > 
+            <ListItem key={item.pedidoid} onPress={() => this.EditarPedidoList(item)}> 
               <Left>
                 <Text>Razon Social: {item.razon_social}</Text>
               </Left>

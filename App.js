@@ -6,6 +6,7 @@ import { createDrawerNavigator} from '@react-navigation/drawer';
 import { Root} from 'native-base';
 import Login from './components/Login';
 import Register from './components/Register';
+import Register_v2 from './components/Register_v2';
 import ListarPedidos from './components/ListarPedidos';
 import { Alert } from "react-native";
 import CustomDrawerContent from './components/CustomDrawerContent';
@@ -67,18 +68,39 @@ export default function App() {
       { cancelable: false }
     )
   };
+
+  function stack() {
+    return (
+    <Stack.Navigator
+      initialRouteName="ListarPedidos"
+      screenOptions={{
+      headerShown: false,
+      //unmountOnBlur: true,
+      animationEnabled: false }} >
+          <Stack.Screen name="ListarPedidos" component={ListarPedidos} options={{unmountOnBlur: true}}/>
+          <Stack.Screen name="Register_v2" component={Register_v2} options={{unmountOnBlur: true}}/>
+    </Stack.Navigator>
+    );
+  }
+
   return (
     <Root>
       <NavigationContainer>
       {loggedIn ? (
         <Drawer.Navigator
-          initialRouteName="Register"
+          screenOptions={{
+          unmountOnBlur: true }}
+          //initialRouteName="Register"
+          initialRouteName="ListarPedidos"
           drawerContent={(props) => <CustomDrawerContent {...props} setLoggedOut={ setLoggedOut }/>}>
-          <Drawer.Screen name="Register" component={Register} />
-          <Drawer.Screen name="ListarPedidos" component={ListarPedidos}
+          <Drawer.Screen name="Register" component={Register}/>
+          {/* <Drawer.Screen name="Register_v2" component={Register_v2} /> */}
+          <Drawer.Screen name="ListarPedidos" component={stack}
           // initialParams={{ setLoggedIn, obtenerSoloUsuario }}
           />
+          
         </Drawer.Navigator>
+        
         ) : (
         <Stack.Navigator>
           <Stack.Screen name="Login" component={Login} options={{headerShown:false}}

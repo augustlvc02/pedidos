@@ -25,7 +25,15 @@ export default function CustomDrawerContent(props) {
       <List>
       { routes.map(data =>(
         <ListItem key={data.key} icon
-          onPress={() => props.navigation.navigate(data.titulo)}>
+          onPress={() => 
+          //props.navigation.replace(data.titulo)}
+          props.navigation.reset({
+            index: 0,
+            routes: [{ name: data.titulo }],
+          })
+          
+        }
+          >
           <Left>
             <Button style={{ backgroundColor: "#007AFF" }}>
               <Icon active name={data.icono} />
